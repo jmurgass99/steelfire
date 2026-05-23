@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "firesteeljm"
+version = "1.1.0"
+description = "Structural Fire Design for Steel EN 1993-1-2"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.23", "jmstructural-common"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-timeout>=2.1",
+    "pytest-cov>=4.0",
+    "httpx>=0.24",
+]
+api = [
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.20",
+    "pydantic>=2.0",
+    "httpx>=0.25",
+]
+analytic = [
+    "sympy>=1.12",
+]
+
+[tool.setuptools.packages.find]
+include = ["firesteeljm*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow",
+    "integration: integration tests",
+    "api: tests REST API endpoints",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["firesteeljm"]
+omit = ["*/__pycache__/*", "*/tests/*"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
+skip_empty = true
+
+[tool.uv.sources]
+jmstructural-common = { workspace = true }
