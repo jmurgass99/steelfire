@@ -15,8 +15,10 @@ from typing import Callable, Sequence
 import numpy as np
 
 
-# Tabla EN 1993-1-2 §3.2.1 Tabla 3.1 — factores de retención
-# k_E(T) módulo de elasticidad, k_y(T) límite de fluencia, k_p(T) proporcional
+# Tabla EN 1993-1-2 §3.2.1 Tabla 3.1 — factores de retención del acero al carbono
+# k_y(T): límite de fluencia efectivo (f_y,θ = k_y·f_y)
+# k_p(T): límite de proporcionalidad (f_p,θ = k_p·f_y)
+# k_E(T): pendiente del tramo elástico / módulo (E_a,θ = k_E·E_a)
 _RETENTION_T = np.array(
     [20, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200],
     dtype=float,
@@ -29,16 +31,38 @@ _K_Y = np.array(
     [1.0, 1.0, 1.0, 1.0, 1.0, 0.78, 0.47, 0.23, 0.11, 0.06, 0.04, 0.02, 0.0],
     dtype=float,
 )
+_K_P = np.array(
+    [1.0, 1.0, 0.807, 0.613, 0.420, 0.360, 0.180, 0.075, 0.050, 0.0375,
+     0.0250, 0.0125, 0.0],
+    dtype=float,
+)
 
 
 def k_E(T_celsius: float) -> float:
-    """Factor de retención del módulo de elasticidad."""
+    """Factor de retención del módulo de elasticidad (k_E,θ, Tabla 3.1)."""
     return float(np.interp(T_celsius, _RETENTION_T, _K_E))
 
 
 def k_y(T_celsius: float) -> float:
-    """Factor de retención del límite de fluencia."""
+    """Factor de retención del límite de fluencia (k_y,θ, Tabla 3.1)."""
     return float(np.interp(T_celsius, _RETENTION_T, _K_Y))
+
+
+def k_p(T_celsius: float) -> float:
+    """Factor de retención del límite de proporcionalidad (k_p,θ, Tabla 3.1).
+
+    f_p,θ = k_p,θ · f_y. Marca el fin del tramo lineal-elástico de la relación
+    tensión-deformación del acero a temperatura elevada (EN 1993-1-2 §3.2.1):
+    por debajo de f_p,θ la respuesta es elástica con pendiente E_a,θ = k_E,θ·E_a.
+    Para 20°C ≤ θa ≤ 400°C, k_y,θ se mantiene en 1.0 mientras k_p,θ ya degrada
+    (200°C→0.807, 300°C→0.613, 400°C→0.420): el límite proporcional cae antes de
+    que lo haga la resistencia de fluencia efectiva.
+
+    Nota: no confundir con k_0.2p,θ (tensión de prueba al 0.2% para secciones
+    Clase 4, EN 1993-1-2 Anexo E / Tabla E.1), que es una columna distinta
+    (p.ej. 0.53 a 500°C, 0.30 a 600°C).
+    """
+    return float(np.interp(T_celsius, _RETENTION_T, _K_P))
 
 
 @dataclass(frozen=True)
@@ -99,7 +123,7 @@ def critical_time_to_failure(steps: Sequence[ThermalStep],
 
 
 __all__ = [
-    "k_E", "k_y",
+    "k_E", "k_y", "k_p",
     "ThermalStep", "thermal_history",
     "critical_time_to_failure",
 ]

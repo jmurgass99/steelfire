@@ -39,6 +39,38 @@ class TestCriticalTemperature:
             assert temps[i] > temps[i + 1]
 
 
+class TestGoldenCriticalTemperature:
+    """GOLDEN — theta_a,cr (EN 1993-1-2 §4.2.4, Eq. 4.22) anclada a casos
+    resueltos a mano de la ficha W01437 ('Ejercicios de Fuego (EC3-1-2)',
+    examenes UPC). Cada mu_0 -> theta_cr fue calculado independientemente por
+    el alumno; aqui se verifica que la formula del modulo reproduce esos
+    numeros. Los valores de referencia son LITERALES de la ficha (no derivados
+    del propio modulo) -> golden honesto, no tautologico.
+
+        theta_cr = 39.19 * ln[1/(0.9674*mu_0^3.833) - 1] + 482
+    """
+
+    # (mu_0, theta_cr_ficha_C, ejercicio) — W01437.
+    # Tolerancia +-1.5°C: la ficha redondea theta_cr al grado.
+    _CASOS = [
+        (0.484, 589.9, "GT3 viga IPE550/S235"),
+        (0.43, 609.0, "GT4 viga IPE270/S235"),
+        (0.28, 674.0, "GT4 tirante 2L40x4"),
+        (0.16, 758.55, "GT1/GT5 columna HEB220/240"),
+        (0.571, 563.0, "GT5 columna HEB220 (metodo pandeo)"),
+    ]
+
+    @pytest.mark.parametrize("mu_0, theta_ref, label", _CASOS)
+    def test_golden_w01437(self, mu_0, theta_ref, label):
+        """W01437 §4.2.4 Eq 4.22: theta_cr(mu_0) reproduce el valor de examen."""
+        assert _critical_temperature(mu_0) == pytest.approx(theta_ref, abs=1.5)
+
+    def test_golden_w01437_exacto_mu_016(self):
+        """W01437 ej.5: mu_0=0.16 -> theta_cr=758.55°C (coincide al centesimo)."""
+        # La ficha cita 758.55°C; verificamos la concordancia estrecha.
+        assert _critical_temperature(0.16) == pytest.approx(758.55, abs=0.1)
+
+
 class TestRenderMemoString:
     """Verificacion de la funcion render_critical_temp_memo (string)."""
 
