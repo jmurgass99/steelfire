@@ -100,6 +100,60 @@ def test_golden_kp_interpola_lineal_550C():
     assert k_p(550) == pytest.approx(0.270, abs=1e-6)
 
 
+# ---------------------------------------------------------------------------
+# GOLDEN — nodos INTERPOLADOS de Tabla 3.1 anclados a ejercicios resueltos con
+# perfiles reales (W01409 viga IPE550, W01411 pilar HEB), a diferencia de los
+# nodos exactos de _TABLA_3_1_KY_KE que caen justo en los escalones de 100°C.
+# Oraculo independiente: interpolacion lineal manual entre los dos nodos de
+# Tabla 3.1 que rodean la temperatura citada -- NO se reimporta la tabla del
+# modulo, se recalcula aparte antes de anclar (regla de la campana de
+# extraccion: 6 fichas de esta tanda tenian erratas numericas).
+# ---------------------------------------------------------------------------
+
+def test_golden_w01409_ky_interpolado_595_5C():
+    """W01409 (viga IPE550/S235, EC3-1-2 S4.2.4): eta_fi=k_y,theta=0.4840 -> Ta=595.5C.
+
+    Oraculo independiente: interpolando Tabla 3.1 entre 500C (ky=0.780) y
+    600C (ky=0.470), ky(595.5) = 0.780 - 0.31*(595.5-500)/100 = 0.48395,
+    que coincide con el eta_fi=0.4840 citado en la ficha (redondeo de Ta a
+    la decima de grado). Verificado a mano, no re-leido del propio modulo.
+    """
+    assert k_y(595.5) == pytest.approx(0.48395, abs=1e-4)
+    assert k_y(595.5) == pytest.approx(0.4840, abs=5e-4)
+
+
+def test_golden_w01411_ky_interpolado_567_8C():
+    """W01411 (pilar HEB, pandeo en fuego EC3-1-2 S4.2.3.2): Ta_crit=567.8C.
+
+    La ficha cita k_y,theta(567.8C)=0.5698. Oraculo independiente:
+    interpolando Tabla 3.1 entre 500C (ky=0.780) y 600C (ky=0.470),
+    ky(567.8) = 0.780 - 0.31*(567.8-500)/100 = 0.56982 -> coincide.
+    """
+    assert k_y(567.8) == pytest.approx(0.56982, abs=1e-4)
+
+
+def test_golden_w01411_kE_interpolado_567_8C_errata_ficha():
+    """W01411: el par (k_y=0.5698, k_E=0.4004, Ta=567.8C) citado en la ficha es
+    MUTUAMENTE INCONSISTENTE bajo interpolacion lineal de Tabla 3.1 -- ningun
+    theta unico satisface ambos a la vez:
+
+      - k_y=0.5698 -> theta = 500 + (0.780-0.5698)/0.31*100 = 567.81C
+        (coincide con el Ta=567.8C citado).
+      - k_E=0.4004 -> theta = 500 + (0.600-0.4004)/0.29*100 = 568.83C
+        (NO coincide; y a ese theta, k_y valdria 0.5666, no 0.5698).
+
+    Oraculo independiente (interpolacion lineal Tabla 3.1 entre 500C
+    (kE=0.600) y 600C (kE=0.310), transcrita a mano, NO reimportada del
+    modulo), evaluada en el Ta=567.8C que SI es consistente con k_y:
+    kE(567.8) = 0.600 - 0.29*(567.8-500)/100 = 0.40338.
+
+    Se ancla el valor RECALCULADO (0.40338) -- coherente con el Ta=567.8C
+    de la ficha -- en lugar del k_E=0.4004 impreso, que corresponde a un
+    theta ~1C mas alto y rompe la consistencia con el propio k_y citado.
+    """
+    assert k_E(567.8) == pytest.approx(0.40338, abs=1e-4)
+
+
 def test_thermal_history_genera_modifiers():
     def iso_simple(t_min: float) -> float:
         # Rampa lineal hasta 600 °C en 30 min
