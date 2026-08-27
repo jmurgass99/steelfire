@@ -33,7 +33,7 @@ def create_router():
     def root() -> dict:
         return {"app": "FireSteelJm", "status": "OK"}
 
-    @router.get("/health")
+    @router.get("/api/thermal/health")
     def health() -> dict:
         return {"status": "ok"}
 
