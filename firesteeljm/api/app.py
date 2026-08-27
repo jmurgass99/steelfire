@@ -46,7 +46,7 @@ def create_router():
     class CriticalTempBody(BaseModel):
         utilization: float = Field(gt=0.013, le=1.0, description="mu = R_fi/R_d")
 
-    @router.post("/fire/curve")
+    @router.post("/fire/curve", summary="Curvas normalizadas de incendio tiempo-temperatura (ISO 834, Hidrocarburo, Paramétrica EN 1991-1-2)")
     def post_fire_curve(body: FireCurveBody) -> dict:
         try:
             from ..fire_curves_sympy import (
@@ -78,7 +78,7 @@ def create_router():
             "dtheta_dt_C_per_min": dtheta,
         }
 
-    @router.post("/fire/critical_temperature")
+    @router.post("/fire/critical_temperature", summary="Temperatura crítica de perfiles de acero según factor de utilización (EN 1993-1-2 §4.2.4)")
     def post_critical_temperature(body: CriticalTempBody) -> dict:
         try:
             from ..fire_curves_sympy import critical_temperature_steel
@@ -117,7 +117,7 @@ def create_router():
         dt: float | None = None
         t_save_every: int = 10
 
-    @router.post("/api/thermal/iso834")
+    @router.post("/api/thermal/iso834", summary="Evolución térmica de elementos no protegidos y protegidos bajo fuego ISO 834")
     def post_iso834(body: ISO834Body) -> dict:
         try:
             res = evaluate_iso834(ISO834Input(**body.model_dump()))
@@ -131,7 +131,7 @@ def create_router():
             "status": res.status,
         }
 
-    @router.post("/api/thermal/section")
+    @router.post("/api/thermal/section", summary="Factor de masividad de sección (Am/V) para calentamiento de perfiles de acero")
     def post_section(body: ThermalBody) -> dict:
         try:
             res = run_thermal_analysis(ThermalAnalysisInput(**body.model_dump()))
@@ -153,7 +153,7 @@ def create_router():
         T_celsius_at_each_t: list[float] = Field(..., min_length=1)
         utilization_at_t0: float = Field(0.6, gt=0, le=1.0)
 
-    @router.post("/api/fire/thermal-iter")
+    @router.post("/api/fire/thermal-iter", summary="Análisis térmico transitorio incremental no lineal de secciones de acero")
     def thermal_iter(payload: ThermalIterPayload):
         from ..thermal_iter import critical_time_to_failure, thermal_history
         if len(payload.time_minutes) != len(payload.T_celsius_at_each_t):
