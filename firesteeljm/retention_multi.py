@@ -22,20 +22,49 @@ _EN_kE = np.array(
 _EN_ky = np.array(
     [1.0, 1.0, 1.0, 1.0, 1.0, 0.78, 0.47, 0.23, 0.11, 0.06, 0.04, 0.02, 0.0],
 )
+#: k_p(T) — límite de proporcionalidad (f_p,θ = k_p·f_y), EN 1993-1-2 Tabla 3.1.
+#: Se importa de `thermal_iter` para no duplicar la tabla normativa: una copia
+#: divergiría en silencio en cuanto alguien corrigiera solo una de las dos.
+from .thermal_iter import _K_P as _EN_kp  # noqa: E402
+
+#: Magnitudes soportadas -> tabla EN. Es un mapa EXPLÍCITO a propósito: la
+#: versión anterior hacía `_EN_kE if quantity == "E" else _EN_ky`, así que
+#: CUALQUIER otro valor caía en k_y sin avisar. `retention_factor(400, "kp")`
+#: devolvía 1.000 en vez de 0.420 —un factor 2.38 de sobreestimación del límite
+#: de proporcionalidad— y hasta un `"e"` en minúscula daba k_y en vez de k_E.
+#: Un factor de seguridad de material no puede salir de un `else` por defecto.
+_EN_TABLES = {"E": _EN_kE, "Fy": _EN_ky, "kp": _EN_kp}
 
 
 def retention_factor(T_celsius: float,
-                       quantity: Literal["E", "Fy"],
+                       quantity: Literal["E", "Fy", "kp"],
                        code: Literal["EU", "SG", "US", "CO", "AU"] = "EU"
                        ) -> float:
-    """k_E(T) o k_y(T) según el código."""
+    """k_E(T), k_y(T) o k_p(T) según el código.
+
+    Raises
+    ------
+    ValueError
+        Si ``quantity`` o ``code`` no están soportados. NUNCA se degrada a una
+        magnitud por defecto: devolver k_y cuando se pidió k_p es un error
+        silencioso del lado inseguro.
+    """
     code = code.upper()
+    if quantity not in _EN_TABLES:
+        raise ValueError(
+            f"magnitud '{quantity}' no soportada; use uno de "
+            f"{sorted(_EN_TABLES)} (distingue mayúsculas)"
+        )
     if code in ("EU", "SG", "AU"):
         # AS 4100 sigue EN 1993-1-2 (con pequeñas diferencias en T<400°C)
-        table = _EN_kE if quantity == "E" else _EN_ky
-        return float(np.interp(T_celsius, _EN_T, table))
+        return float(np.interp(T_celsius, _EN_T, _EN_TABLES[quantity]))
     if code in ("US", "CO"):
         # AISC 360-22 Apéndice 4 — aproximación cuadrática
+        if quantity == "kp":
+            raise ValueError(
+                "AISC 360-22 Apéndice 4 no define un k_p equivalente al de "
+                "EN 1993-1-2 Tabla 3.1; no se sustituye por otra magnitud."
+            )
         T = max(T_celsius, 20)
         if quantity == "E":
             # k_E ≈ 1 - 6e-4·T - 6e-6·T² (valida 20-700°C)
