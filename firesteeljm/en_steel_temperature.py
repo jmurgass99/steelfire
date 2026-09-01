@@ -98,12 +98,118 @@ def steel_temperature_at(section, duration_min: float, dt_s: float = 5.0,
     return steel_temperature_history(section, duration_min, dt_s, gas_curve)[-1][1]
 
 
+def critical_temperature(mu_0: float = 0.65) -> float:
+    """Temperatura critica del acero segun EN 1993-1-2 §4.2.4.
+
+    theta_crit = 39.19 * ln(1 / (0.9674 * mu_0^3.833) - 1) + 482
+    """
+    if mu_0 <= 0 or mu_0 >= 1.033:
+        raise ValueError("mu_0 debe estar en el rango (0, 1.033)")
+    term = 1.0 / (0.9674 * (mu_0 ** 3.833)) - 1.0
+    term = max(term, 1e-9)
+    return 39.19 * math.log(term) + 482.0
+
+
+@dataclass(frozen=True)
+class FireDesignCheckResult:
+    """Resultado del chequeo de resistencia al fuego de un perfil estructural."""
+    section_name: str
+    Am_V_m_inv: float
+    required_rating: str
+    duration_min: float
+    load_ratio_mu0: float
+    theta_crit_C: float
+    theta_unprotected_C: float
+    requires_protection: bool
+    recommended_protection: dict | None
+    is_safe: bool
+
+    def to_dict(self) -> dict:
+        return {
+            "section_name": self.section_name,
+            "Am_V_m_inv": self.Am_V_m_inv,
+            "required_rating": self.required_rating,
+            "duration_min": self.duration_min,
+            "load_ratio_mu0": self.load_ratio_mu0,
+            "theta_crit_C": round(self.theta_crit_C, 1),
+            "theta_unprotected_C": round(self.theta_unprotected_C, 1),
+            "requires_protection": self.requires_protection,
+            "recommended_protection": self.recommended_protection,
+            "is_safe": self.is_safe,
+        }
+
+
+def check_fire_resistance_from_profile(
+    section_name: str,
+    Am_V_m_inv: float,
+    load_ratio_mu0: float = 0.65,
+    required_rating: str = "R60",
+    preferred_protection_type: str = "intumescent",
+) -> FireDesignCheckResult:
+    """Evalúa la resistencia al fuego de un perfil dado y determina si requiere protección pasiva."""
+    from . import protection_catalog
+
+    # Extraer minutos requeridos (ej. 'R60' -> 60, 'R30' -> 30)
+    rating_clean = required_rating.upper().replace("R", "").strip()
+    try:
+        duration_min = float(rating_clean)
+    except ValueError:
+        duration_min = 60.0
+
+    theta_crit = critical_temperature(load_ratio_mu0)
+
+    # Temperatura alcanzada sin proteger
+    unprotected = UnprotectedSteel(Am_V_1_m=Am_V_m_inv, ksh=0.90)
+    theta_unprot = steel_temperature_at(unprotected, duration_min=duration_min)
+
+    requires_prot = theta_unprot > theta_crit
+    prot_info = None
+
+    if requires_prot:
+        candidates = protection_catalog.recommend(target_rating_min=int(duration_min))
+        matching = [p for p in candidates if preferred_protection_type in p.type] or candidates
+        if matching:
+            best_prot = matching[0]
+            # Espesor típico medio recomendado
+            t_min_mm, t_max_mm = best_prot.typical_thickness_mm
+            chosen_t_mm = (t_min_mm + t_max_mm) / 2.0
+            prot_info = {
+                "code": best_prot.code,
+                "type": best_prot.type,
+                "thickness_mm": chosen_t_mm,
+                "thickness_range_mm": best_prot.typical_thickness_mm,
+                "cost_USD_per_m2": best_prot.cost_USD_per_m2,
+                "rating_minutes": best_prot.rating_minutes,
+            }
+
+    return FireDesignCheckResult(
+        section_name=section_name,
+        Am_V_m_inv=Am_V_m_inv,
+        required_rating=required_rating,
+        duration_min=duration_min,
+        load_ratio_mu0=load_ratio_mu0,
+        theta_crit_C=theta_crit,
+        theta_unprotected_C=theta_unprot,
+        requires_protection=requires_prot,
+        recommended_protection=prot_info,
+        is_safe=not requires_prot or prot_info is not None,
+    )
+
+
 def shadow_factor_I(Am_V_1_m: float, Am_V_box_1_m: float) -> float:
     """Efecto sombra para perfiles I (§4.2.5.1): ksh = 0.9·(Am/V)_box/(Am/V)."""
     return 0.9 * Am_V_box_1_m / Am_V_1_m
 
 
 __all__ = [
-    "specific_heat_steel", "iso834_gas", "UnprotectedSteel", "ProtectedSteel",
-    "steel_temperature_history", "steel_temperature_at", "shadow_factor_I",
+    "UnprotectedSteel",
+    "ProtectedSteel",
+    "FireDesignCheckResult",
+    "specific_heat_steel",
+    "iso834_gas",
+    "steel_temperature_history",
+    "steel_temperature_at",
+    "critical_temperature",
+    "check_fire_resistance_from_profile",
+    "shadow_factor_I",
 ]
