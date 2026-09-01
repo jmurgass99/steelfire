@@ -171,3 +171,36 @@ def test_kp_no_se_sustituye_por_otra_magnitud_en_codigos_sin_kp():
     """
     with pytest.raises(ValueError, match="no define un k_p"):
         retention_factor(500.0, "kp", "US")
+
+
+def test_defecto_AU_enrutado_a_tabla_EN_sin_ajustes():
+    """DEFECTO VIVO - "AU" es hoy un alias exacto de "EU", sin AS 4100.
+
+    El docstring del modulo anuncia:
+
+        AU:     AS 4100 Tabla 12.1 (basado en EN con ajustes)
+
+    pero el codigo hace `if code in ("EU", "SG", "AU")` y enruta las tres a la
+    MISMA tabla EN, sin ajuste alguno. AS 4100 Tabla 12.1 difiere de EN
+    1993-1-2 Tabla 3.1 justamente por debajo de 400 C, que es donde este test
+    demuestra que no hay diferencia: no hay implementacion de AS 4100.
+
+    Este test se conserva DELIBERADAMENTE en rojo-conceptual (pasa, pero lo que
+    asevera es la ausencia): si alguien implementa AS 4100 de verdad, empezara
+    a fallar y habra que reescribirlo como golden de esa norma. Es la unica
+    constancia por escrito de la discrepancia entre el docstring y el codigo.
+
+    CLASIFICACION: caracterizacion. Compara la implementacion consigo misma
+    para dejar constancia de una equivalencia que la documentacion niega.
+    """
+    for theta_C in (100.0, 200.0, 300.0, 350.0, 400.0, 500.0, 600.0):
+        for magnitud in ("Fy", "E", "kp"):
+            assert retention_factor(theta_C, magnitud, "AU") == (
+                retention_factor(theta_C, magnitud, "EU")
+            ), f"AU deberia diferir de EU a {theta_C} C para {magnitud}"
+
+
+# Marcado tras el cuerpo para no repetir el import de pytest en la cabecera.
+test_defecto_AU_enrutado_a_tabla_EN_sin_ajustes = pytest.mark.characterization(
+    test_defecto_AU_enrutado_a_tabla_EN_sin_ajustes
+)
