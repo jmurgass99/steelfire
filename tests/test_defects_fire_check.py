@@ -166,13 +166,18 @@ def test_d1_is_safe_no_puede_ser_true_con_proteccion_insuficiente():
     declaradas en ``protection_catalog`` y con el espesor que el resultado dice
     haber propuesto. El veredicto debe ser exactamente
     theta_protegida <= theta_crit.
+
+    El caso se plantea sobre una PLACA (capa inerte), no sobre una pintura
+    intumescente: §4.2.5.2 solo aplica a un aislante de espesor y conductividad
+    constantes. Para el recubrimiento reactivo, que ya no produce ninguna
+    temperatura, ver D5 en ``test_reactive_coating_certified.py``.
     """
     res = check_fire_resistance_from_profile(
         section_name="IPE 300",
         Am_V_m_inv=200.0,
         load_ratio_mu0=0.65,
-        required_rating="R60",
-        preferred_protection_type="intumescent",
+        required_rating="R90",
+        preferred_protection_type="board",
     )
 
     # Punto de partida del defecto: sin proteger se superan con creces los 540 C.
@@ -192,12 +197,12 @@ def test_d1_is_safe_no_puede_ser_true_con_proteccion_insuficiente():
             cp=prot.c_p_J_per_kgK,
             rho_p=prot.rho_p_kg_m3,
         ),
-        duration_min=60.0,
+        duration_min=90.0,
     )
     assert res.theta_protected_C == pytest.approx(esperada, rel=1e-9)
 
-    # Con lambda de pelicula seca del catalogo, la pintura intumescente no baja
-    # de 540 C a 60 min: el veredicto honesto es NO seguro.
+    # La placa al espesor medio de su rango tipico no baja de 540 C a 90 min:
+    # el veredicto honesto es NO seguro, y sale de la comparacion termica.
     assert esperada > res.theta_crit_C
     assert res.is_safe is False
 
@@ -238,11 +243,11 @@ def test_d1_to_dict_expone_el_estado_de_verificacion():
     d = check_fire_resistance_from_profile(
         section_name="IPE 300",
         Am_V_m_inv=200.0,
-        required_rating="R60",
-        preferred_protection_type="intumescent",
+        required_rating="R90",
+        preferred_protection_type="board",
     ).to_dict()
     assert d["is_safe"] is False
-    assert "theta_protected_C" in d
+    assert d["theta_protected_C"] is not None
     assert d["verification_status"] in {
         "SIN_PROTECCION_CUMPLE",
         "CON_PROTECCION_CUMPLE",

@@ -41,9 +41,42 @@ def test_golden_fire_resistance_check_ipe300_r60():
     assert res.theta_unprotected_C > 750.0
     assert res.requires_protection is True
 
-    # 3. Asignación de protección pasiva desde el catálogo
+    # 3. Una pintura intumescente es un recubrimiento REACTIVO: EN 1993-1-2
+    #    §4.2.5.2 (capa inerte de dp y lambda_p constantes) no le aplica y sin
+    #    espesor certificado de ensayo (UL 263 / EN 13381-8) no hay veredicto.
+    #    Antes se devolvía aquí una protección con espesor "medio del rango" y
+    #    una temperatura de 916,7 °C calculada con el lambda_p de película seca:
+    #    ese número no es un resultado, es la propiedad equivocada metida en el
+    #    modelo equivocado. Ver D5 en ``test_reactive_coating_certified.py``.
+    assert res.recommended_protection is None
+    assert res.theta_protected_C is None
+    assert res.is_safe is None
+    assert res.verification_status == "NO_VERIFICADO"
+
+
+def test_golden_fire_resistance_check_ipe300_r60_capa_inerte():
+    """GOLDEN. Dimensionado desde catálogo con una protección de CAPA INERTE.
+
+    El mortero proyectado sí es un aislante de espesor y conductividad
+    sensiblemente constantes: §4.2.5.2 aplica, se integra, y el veredicto sale
+    de theta_protegida <= theta_crit.
+    """
+    res = check_fire_resistance_from_profile(
+        section_name="IPE 300",
+        Am_V_m_inv=200.0,
+        load_ratio_mu0=0.65,
+        required_rating="R60",
+        preferred_protection_type="spray_mortar",
+    )
+
+    assert res.requires_protection is True
     assert res.recommended_protection is not None
     prot = res.recommended_protection
-    assert "INT" in prot["code"] or "mortar" in prot["code"]
+    assert "mortar" in prot["code"]
     assert prot["thickness_mm"] > 0.0
     assert prot["cost_USD_per_m2"] > 0.0
+
+    # El veredicto es una comparación térmica real, no la existencia de la ficha.
+    assert res.theta_protected_C is not None
+    assert res.theta_protected_C < res.theta_crit_C
+    assert res.is_safe is True

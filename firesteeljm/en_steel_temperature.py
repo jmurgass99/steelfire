@@ -162,6 +162,45 @@ def parse_fire_rating_minutes(required_rating: str) -> float:
     return minutos
 
 
+def _rating_classes(rating: str) -> frozenset[str]:
+    """Letras de prestacion EN 13501-2 de una clasificacion ('REI90' -> R,E,I).
+
+    Raises:
+        ValueError: si la cadena no es una clasificacion interpretable.
+    """
+    m = _RATING_RE.match(rating or "")
+    if m is None:
+        raise ValueError(
+            f"clasificacion de resistencia al fuego no interpretable: {rating!r}. "
+            f"Formatos aceptados: {_RATING_FORMATS}."
+        )
+    return frozenset(m.group(1).upper())
+
+
+def rating_covers(certified_rating: str, required_rating: str) -> bool:
+    """Devuelve si ``certified_rating`` cubre el requisito ``required_rating``.
+
+    Una clasificacion cubre a otra si cumple LAS DOS condiciones:
+
+    1. Duracion: EN 13501-2 define el numero de la clase como la duracion
+       normalizada en MINUTOS, asi que la comparacion es numerica y nunca entre
+       cadenas. Como texto "R120" < "R90" (porque '1' < '9'), lo que invertiria
+       justamente el par R90/R120.
+    2. Prestaciones: las letras certificadas deben incluir a las requeridas.
+       R (capacidad portante), E (integridad) e I (aislamiento) son prestaciones
+       distintas y se ensayan por separado: un producto clasificado R120 NO
+       acredita E ni I, de modo que no cubre un EI90 por mucho que 120 >= 90.
+       Al reves si: REI120 cubre R90.
+
+    Raises:
+        ValueError: si alguna de las dos cadenas no es interpretable.
+    """
+    if not _rating_classes(certified_rating) >= _rating_classes(required_rating):
+        return False
+    return (parse_fire_rating_minutes(certified_rating)
+            >= parse_fire_rating_minutes(required_rating))
+
+
 # Estados de verificacion posibles del chequeo de resistencia al fuego.
 STATUS_SIN_PROTECCION_CUMPLE = "SIN_PROTECCION_CUMPLE"
 STATUS_CON_PROTECCION_CUMPLE = "CON_PROTECCION_CUMPLE"
@@ -300,12 +339,113 @@ def check_fire_resistance_from_profile(
         )
 
     best_prot = matching[0]
+
+    # D5: el metodo de verificacion depende de la FISICA del recubrimiento.
+    if best_prot.design_method == protection_catalog.METHOD_CERTIFIED_TEST:
+        # Recubrimiento REACTIVO (intumescente): se expande de 20 a 50 veces y su
+        # conductividad efectiva varia con la temperatura, de modo que NO es la
+        # capa inerte de espesor y lambda constantes que supone §4.2.5.2. No se
+        # calcula ninguna temperatura: se comprueba si la clasificacion
+        # CERTIFICADA de ensayo (UL 263 / EN 13381-8) cubre la requerida para
+        # este factor de seccion.
+        spec = protection_catalog.certified_specification(
+            best_prot, Am_V_m_inv, required_rating
+        )
+        if spec is None:
+            notes.append(
+                f"{best_prot.code} es un recubrimiento reactivo: EN 1993-1-2 4.2.5.2 "
+                "(capa inerte) no le aplica y su lambda_p de pelicula seca no "
+                "representa la espuma expandida. Se verifica por espesor "
+                "certificado de ensayo (UL 263 / EN 13381-8) y el catalogo no "
+                f"tiene ninguna fila que cubra {required_rating} hasta "
+                f"Am/V = {Am_V_m_inv:.0f} 1/m. Sin dato certificado no hay "
+                "veredicto: se requiere el informe de ensayo del fabricante."
+            )
+            return FireDesignCheckResult(
+                section_name=section_name,
+                Am_V_m_inv=Am_V_m_inv,
+                required_rating=required_rating,
+                duration_min=duration_min,
+                load_ratio_mu0=load_ratio_mu0,
+                theta_crit_C=theta_crit,
+                theta_unprotected_C=theta_unprot,
+                requires_protection=True,
+                recommended_protection=None,
+                is_safe=None,
+                verification_status=STATUS_NO_VERIFICADO,
+                theta_protected_C=None,
+                available_protection_types=available_types,
+                notes=tuple(notes),
+            )
+
+        notes.append(
+            f"{best_prot.code} verificado por clasificacion CERTIFICADA de ensayo, "
+            f"no por EN 1993-1-2 4.2.5.2: {spec.rating} certificada con "
+            f"{spec.thickness_mm:.2f} mm hasta Am/V = {spec.Am_V_max_1_m:.0f} 1/m "
+            f"cubre el requisito {required_rating}. Fuente: {spec.source}. "
+            "No se calcula temperatura del acero: para un recubrimiento reactivo "
+            "no hay modelo de capa inerte aplicable."
+        )
+        prot_info = {
+            "code": best_prot.code,
+            "type": best_prot.type,
+            "verification_method": best_prot.design_method,
+            "thickness_mm": spec.thickness_mm,
+            "thickness_range_mm": best_prot.typical_thickness_mm,
+            "cost_USD_per_m2": best_prot.cost_USD_per_m2,
+            "rating_minutes": best_prot.rating_minutes,
+            "certified_rating": spec.rating,
+            "certified_Am_V_max_1_m": spec.Am_V_max_1_m,
+            "certified_source": spec.source,
+        }
+        return FireDesignCheckResult(
+            section_name=section_name,
+            Am_V_m_inv=Am_V_m_inv,
+            required_rating=required_rating,
+            duration_min=duration_min,
+            load_ratio_mu0=load_ratio_mu0,
+            theta_crit_C=theta_crit,
+            theta_unprotected_C=theta_unprot,
+            requires_protection=True,
+            recommended_protection=prot_info,
+            is_safe=True,
+            verification_status=STATUS_CON_PROTECCION_CUMPLE,
+            theta_protected_C=None,
+            available_protection_types=available_types,
+            notes=tuple(notes),
+        )
+
+    if best_prot.lambda_p_W_per_mK is None:
+        # Capa inerte sin conductividad declarada: falta el dato de entrada de
+        # §4.2.5.2 y no se sustituye por ninguno. Ausencia -> ausencia.
+        notes.append(
+            f"{best_prot.code} no declara lambda_p: sin conductividad no se puede "
+            "integrar EN 1993-1-2 4.2.5.2 y no hay veredicto."
+        )
+        return FireDesignCheckResult(
+            section_name=section_name,
+            Am_V_m_inv=Am_V_m_inv,
+            required_rating=required_rating,
+            duration_min=duration_min,
+            load_ratio_mu0=load_ratio_mu0,
+            theta_crit_C=theta_crit,
+            theta_unprotected_C=theta_unprot,
+            requires_protection=True,
+            recommended_protection=None,
+            is_safe=None,
+            verification_status=STATUS_NO_VERIFICADO,
+            theta_protected_C=None,
+            available_protection_types=available_types,
+            notes=tuple(notes),
+        )
+
     # Espesor típico medio recomendado
     t_min_mm, t_max_mm = best_prot.typical_thickness_mm
     chosen_t_mm = (t_min_mm + t_max_mm) / 2.0
     prot_info = {
         "code": best_prot.code,
         "type": best_prot.type,
+        "verification_method": best_prot.design_method,
         "thickness_mm": chosen_t_mm,
         "thickness_range_mm": best_prot.typical_thickness_mm,
         "cost_USD_per_m2": best_prot.cost_USD_per_m2,
@@ -326,13 +466,6 @@ def check_fire_resistance_from_profile(
         "Temperatura protegida calculada con Ap/V = Am/V (proteccion siguiendo el "
         f"contorno) y espesor {chosen_t_mm:.2f} mm (medio del rango tipico)."
     )
-    if best_prot.type == "intumescent":
-        notes.append(
-            "CAVEAT: lambda_p del catalogo es un valor de pelicula SECA. El modelo "
-            "de capa inerte de EN 1993-1-2 4.2.5.2 no representa el hinchamiento de una pintura "
-            "intumescente; usar el espesor certificado del ensayo UL/EN, no este calculo."
-        )
-
     is_safe = theta_prot <= theta_crit
     status = (
         STATUS_CON_PROTECCION_CUMPLE if is_safe else STATUS_CON_PROTECCION_NO_CUMPLE
@@ -376,6 +509,7 @@ __all__ = [
     "steel_temperature_at",
     "critical_temperature",
     "parse_fire_rating_minutes",
+    "rating_covers",
     "check_fire_resistance_from_profile",
     "STATUS_SIN_PROTECCION_CUMPLE",
     "STATUS_CON_PROTECCION_CUMPLE",
