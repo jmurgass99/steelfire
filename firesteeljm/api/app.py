@@ -172,6 +172,28 @@ def create_router():
             ],
         }
 
+    class FireProfilePayload(BaseModel):
+        section_name: str
+        Am_V_m_inv: float = Field(..., gt=0, description="Factor de masividad Am/V en 1/m")
+        load_ratio_mu0: float = Field(0.65, gt=0.013, le=1.0, description="Grado de utilización en situación de incendio mu0")
+        required_rating: str = Field("R60", description="Resistencia requerida (ej. R30, R60, R90, R120)")
+        preferred_protection_type: str = Field("intumescent", description="Tipo de protección (intumescent, board, spray)")
+
+    @router.post("/api/fire/check-profile", summary="Comprobación de resistencia al fuego de perfil de acero y protección requerida según EN 1993-1-2 §4.2")
+    def fire_check_profile(payload: FireProfilePayload):
+        from ..en_steel_temperature import check_fire_resistance_from_profile
+        try:
+            res = check_fire_resistance_from_profile(
+                section_name=payload.section_name,
+                Am_V_m_inv=payload.Am_V_m_inv,
+                load_ratio_mu0=payload.load_ratio_mu0,
+                required_rating=payload.required_rating,
+                preferred_protection_type=payload.preferred_protection_type,
+            )
+            return res.to_dict()
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
+
     return router
 
 
