@@ -52,20 +52,27 @@ def create_router():
             from ..fire_curves_sympy import (
                 iso_834 as _iso, hydrocarbon as _hc, external as _ext,
             )
+
+            # El `except ImportError` cubria SOLO el import de arriba, y ese
+            # import no falla nunca: `fire_curves_sympy` se importa sin sympy
+            # --guarda `_HAS_SYMPY = False`-- y lanza aqui abajo, al llamar. El
+            # resultado medido era un 500 con "Internal Server Error", el unico
+            # de las 356 rutas del OpenAPI. Que falte un extra opcional no es un
+            # fallo del servidor: es una capacidad ausente, y se dice cual.
+            if body.curve == "iso834":
+                spec = _iso()
+            elif body.curve == "hydrocarbon":
+                spec = _hc()
+            elif body.curve == "external":
+                spec = _ext()
+            else:  # pragma: no cover - validado por Literal
+                raise HTTPException(
+                    status_code=400, detail=f"curve invalida: {body.curve}")
         except ImportError as exc:
             raise HTTPException(
                 status_code=503,
                 detail=f"sympy requerido (instalar firesteeljm[analytic]): {exc}",
             ) from exc
-
-        if body.curve == "iso834":
-            spec = _iso()
-        elif body.curve == "hydrocarbon":
-            spec = _hc()
-        elif body.curve == "external":
-            spec = _ext()
-        else:  # pragma: no cover - validado por Literal
-            raise HTTPException(status_code=400, detail=f"curve invalida: {body.curve}")
 
         theta = [float(spec.lambda_t_min(t)) for t in body.t_minutes]
         dtheta = [float(spec.derivative_callable(t)) for t in body.t_minutes]
@@ -82,13 +89,15 @@ def create_router():
     def post_critical_temperature(body: CriticalTempBody) -> dict:
         try:
             from ..fire_curves_sympy import critical_temperature_steel
+
+            # Mismo defecto que en `/fire/curve`: el `except ImportError`
+            # protegia el import, y sympy falta al LLAMAR, no al importar.
+            Tcr = critical_temperature_steel(body.utilization)
         except ImportError as exc:
             raise HTTPException(
                 status_code=503,
                 detail=f"sympy requerido (instalar firesteeljm[analytic]): {exc}",
             ) from exc
-        try:
-            Tcr = critical_temperature_steel(body.utilization)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return {
