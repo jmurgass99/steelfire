@@ -15,11 +15,31 @@ def test_eu_500C():
     assert retention_factor(500, "Fy", "EU") == pytest.approx(0.78)
 
 
-def test_us_diferente_de_eu():
-    # AISC quadratic differs from EN piecewise
-    eu = retention_factor(400, "E", "EU")
-    us = retention_factor(400, "E", "US")
-    assert abs(eu - us) > 0  # son distintos
+def test_us_sigue_la_tabla_A_4_2_1_de_AISC():
+    """AISC 360-16/22 Tabla A-4.2.1 (nodos en F): 750 F = 399 C -> k_E = 0.70,
+    k_p = 0.420, k_y = 1.00; 1000 F = 538 C -> 0.49 / 0.180 / 0.66;
+    1200 F = 649 C -> 0.22 / 0.075 / 0.35. Son los valores de EN 1993-1-2
+    Tabla 3.1 adoptados por AISC, de modo que US y EU difieren solo por el
+    redondeo y la posicion de los nodos (< 0.02).
+
+    La version anterior usaba una cuadratica sin fuente que daba k_E = 0 a
+    400 C (la tabla da 0.70): este test la impide volver.
+    """
+    assert retention_factor(399, "E", "US") == pytest.approx(0.70, abs=1e-9)
+    assert retention_factor(399, "kp", "US") == pytest.approx(0.420, abs=1e-9)
+    assert retention_factor(538, "E", "US") == pytest.approx(0.49, abs=1e-9)
+    assert retention_factor(538, "Fy", "US") == pytest.approx(0.66, abs=1e-9)
+    assert retention_factor(649, "Fy", "US") == pytest.approx(0.35, abs=1e-9)
+    # En los nodos de la tabla AISC los valores son los de EN interpolados
+    # (redondeados a dos decimales); entre nodos las dos tablas difieren
+    # porque sus nodos no coinciden (p. ej. 0.552 frente a 0.600 a 500 C).
+    for T in (204, 316, 399, 427, 538, 649, 760):
+        for q in ("E", "Fy"):
+            assert abs(retention_factor(T, q, "US") - retention_factor(T, q, "EU")) < 0.015, (T, q)
+        # k_p: AISC asigna a 600 F (316 C) el valor que EN da a 300 C (0.613), asi
+        # que entre nodos la diferencia llega a 0.03; se exige < 0.04.
+        assert abs(retention_factor(T, "kp", "US") - retention_factor(T, "kp", "EU")) < 0.04, (T, "kp")
+    assert retention_factor(400, "E", "US") > 0.69  # antes: 0.0
 
 
 def test_T_alto_va_a_cero():
@@ -164,13 +184,15 @@ def test_magnitud_desconocida_lanza_en_vez_de_devolver_otra():
     assert retention_factor(500.0, "Fy", "EU") == pytest.approx(0.78, abs=1e-9)
 
 
-def test_kp_no_se_sustituye_por_otra_magnitud_en_codigos_sin_kp():
-    """AISC 360-22 Apendice 4 no define un kp equivalente al de EN Tabla 3.1.
-
-    La respuesta correcta es abortar, no devolver k_y disfrazado de k_p.
+def test_kp_en_US_es_el_de_la_tabla_A_4_2_1_no_k_y_disfrazado():
+    """AISC 360 Tabla A-4.2.1 SI tabula k_p = F_p(T)/F_y. Un k_p que coincidiera
+    con k_y seria la sustitucion silenciosa que esta campana persigue; aqui se
+    exige que k_p difiera de k_y donde la tabla lo hace (300-500 C) y que
+    coincida con el valor tabulado.
     """
-    with pytest.raises(ValueError, match="no define un k_p"):
-        retention_factor(500.0, "kp", "US")
+    assert retention_factor(316.0, "kp", "US") == pytest.approx(0.613, abs=1e-9)
+    assert retention_factor(316.0, "kp", "US") < retention_factor(316.0, "Fy", "US")
+    assert retention_factor(427.0, "kp", "US") == pytest.approx(0.360, abs=1e-9)
 
 
 def test_defecto_AU_enrutado_a_tabla_EN_sin_ajustes():

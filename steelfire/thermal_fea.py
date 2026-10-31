@@ -137,40 +137,47 @@ def solve_thermal(
     for step in range(1, n_steps):
         t = step * dt
         Tg = gas_temperature_fn(t)
-        T_new = T.copy()
-        # Laplaciano interior
         c = c_steel(float(T.mean()))
         alpha = K_STEEL / (RHO_STEEL * c)
-        T_new[1:-1, 1:-1] = T[1:-1, 1:-1] + alpha * dt * (
-            (T[1:-1, 2:] - 2*T[1:-1, 1:-1] + T[1:-1, :-2]) / dx**2
-            + (T[2:, 1:-1] - 2*T[1:-1, 1:-1] + T[:-2, 1:-1]) / dy**2
-        )
-        # Boundary conditions: flujo desde el gas en caras expuestas
+        # Conducción en TODA la malla, con gradiente nulo en los bordes (nodos
+        # fantasma por replicación). Hasta 2026-10-31 el laplaciano solo se
+        # aplicaba al interior y las celdas de borde se actualizaban únicamente
+        # con el flujo del gas: nunca cedían calor hacia dentro, de modo que su
+        # temperatura y la media de la sección crecían al refinar la malla
+        # (200x200 mm, 10 min: media 132/208/324 °C con 5/10/20 divisiones) y
+        # una barra de 60 mm calentaba casi el doble que el modelo de masa
+        # concentrada de EN 1993-1-2 §4.2.5.1 con el mismo flujo.
+        Tp = np.pad(T, 1, mode="edge")
+        lap = ((Tp[1:-1, 2:] - 2.0 * T + Tp[1:-1, :-2]) / dx**2
+               + (Tp[2:, 1:-1] - 2.0 * T + Tp[:-2, 1:-1]) / dy**2)
+        T_new = T + alpha * dt * lap
+        # Flujo del gas en las caras expuestas, absorbido por la celda de borde
+        # (energía q·dt por unidad de área de cara, capacidad ρ·c·Δn por área).
         bot, right, top, left = section.exposed_faces
         if bot:
             q = np.array([_boundary_flux(float(T[0, i]), Tg,
                                            section.protection_thickness,
                                            section.protection_k)
                           for i in range(n_x)])
-            T_new[0, :] = T[0, :] + dt * q / (RHO_STEEL * c * dy)
+            T_new[0, :] += dt * q / (RHO_STEEL * c * dy)
         if top:
             q = np.array([_boundary_flux(float(T[-1, i]), Tg,
                                            section.protection_thickness,
                                            section.protection_k)
                           for i in range(n_x)])
-            T_new[-1, :] = T[-1, :] + dt * q / (RHO_STEEL * c * dy)
+            T_new[-1, :] += dt * q / (RHO_STEEL * c * dy)
         if left:
             q = np.array([_boundary_flux(float(T[j, 0]), Tg,
                                            section.protection_thickness,
                                            section.protection_k)
                           for j in range(n_y)])
-            T_new[:, 0] = T[:, 0] + dt * q / (RHO_STEEL * c * dx)
+            T_new[:, 0] += dt * q / (RHO_STEEL * c * dx)
         if right:
             q = np.array([_boundary_flux(float(T[j, -1]), Tg,
                                            section.protection_thickness,
                                            section.protection_k)
                           for j in range(n_y)])
-            T_new[:, -1] = T[:, -1] + dt * q / (RHO_STEEL * c * dx)
+            T_new[:, -1] += dt * q / (RHO_STEEL * c * dx)
         T = T_new
         if step % t_save_every == 0:
             times.append(t)
