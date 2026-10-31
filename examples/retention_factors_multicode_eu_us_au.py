@@ -2,7 +2,7 @@
 
 `retention_factor` devuelve k_E, k_y o k_p para EU/SG/AU (Tabla 3.1 de EN 1993-1-2) y para
 US/CO (AISC 360 Apéndice 4, Tabla A-4.2.1, que adopta los valores del Eurocódigo en nodos de
-°F: coinciden en los nodos y difieren algo entre ellos). Una magnitud o un código no
+°F: k_E y k_y coinciden en los nodos; k_p queda hasta 0,04 por debajo entre 300 y 500 °C). Una magnitud o un código no
 soportados lanzan ValueError en vez de devolver otra magnitud. Hasta esta versión la rama US
 usaba una cuadrática sin fuente que daba k_E = 0 a 400 °C.
 

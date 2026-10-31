@@ -36,9 +36,16 @@ def test_us_sigue_la_tabla_A_4_2_1_de_AISC():
     for T in (204, 316, 399, 427, 538, 649, 760):
         for q in ("E", "Fy"):
             assert abs(retention_factor(T, q, "US") - retention_factor(T, q, "EU")) < 0.015, (T, q)
-        # k_p: AISC asigna a 600 F (316 C) el valor que EN da a 300 C (0.613), asi
-        # que entre nodos la diferencia llega a 0.03; se exige < 0.04.
-        assert abs(retention_factor(T, "kp", "US") - retention_factor(T, "kp", "EU")) < 0.04, (T, "kp")
+    # k_p: AISC asigna a cada nodo en F el valor EC3 del nodo en C anterior
+    # (600 F = 316 C -> 0.613, que EN da a 300 C; 800 F = 427 C -> 0.360, que
+    # EN da a 500 C), asi que k_p en US queda por debajo de EU entre 300 y
+    # 500 C hasta en 0.044. No se exige cercania: se exigen los literales de
+    # la tabla y la monotonia.
+    assert retention_factor(316.0, "kp", "US") == pytest.approx(0.613, abs=1e-9)
+    assert retention_factor(427.0, "kp", "US") == pytest.approx(0.360, abs=1e-9)
+    assert retention_factor(538.0, "kp", "US") == pytest.approx(0.180, abs=1e-9)
+    kps = [retention_factor(T, "kp", "US") for T in range(20, 1201, 10)]
+    assert all(a >= b for a, b in zip(kps, kps[1:]))
     assert retention_factor(400, "E", "US") > 0.69  # antes: 0.0
 
 

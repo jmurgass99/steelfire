@@ -272,7 +272,7 @@ k_y(1150) = 0.010; k_y(1250) = 0.000 (por encima de 1 200 °C vale 0, no un resi
 
 #### Factores de retención por norma: EN 1993-1-2 frente a AISC 360 Apéndice 4
 
-AISC adopta los valores del Eurocódigo en nodos de °F: coinciden en los nodos y difieren algo entre ellos. Hasta esta versión la rama US usaba una cuadrática sin fuente que daba k_E = 0 a 400 °C.
+AISC adopta los valores del Eurocódigo en nodos de °F: k_E y k_y coinciden en los nodos, k_p queda hasta 0,04 por debajo entre 300 y 500 °C. Hasta esta versión la rama US usaba una cuadrática sin fuente que daba k_E = 0 a 400 °C.
 
 <details><summary>Salida real de <code>python examples/retention_factors_multicode_eu_us_au.py</code></summary>
 
