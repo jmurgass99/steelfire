@@ -2,7 +2,7 @@
 """Temperatura del acero EN 1993-1-2 §4.2.5 (metodo simple)."""
 import pytest
 
-from firesteeljm.en_steel_temperature import (
+from steelfire.en_steel_temperature import (
     ProtectedSteel,
     UnprotectedSteel,
     iso834_gas,

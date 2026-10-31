@@ -1,6 +1,6 @@
 """Tests for fire_load_density."""
 import pytest
-from firesteeljm.fire_load_density import (
+from steelfire.fire_load_density import (
     FireLoadInput, fire_load_density, equivalent_fire_duration_min,
 )
 

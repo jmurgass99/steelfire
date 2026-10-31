@@ -6,8 +6,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from firesteeljm.api.app import create_router
-from firesteeljm.en_steel_temperature import (
+from steelfire.api.app import create_router
+from steelfire.en_steel_temperature import (
     critical_temperature,
     check_fire_resistance_from_profile,
 )

@@ -2,7 +2,7 @@
 from __future__ import annotations
 import pytest
 
-from firesteeljm.exceptions import (
+from steelfire.exceptions import (
     FireSteelError,
     ConfigurationError,
     ConvergenceError,

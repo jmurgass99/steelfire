@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from firesteeljm.memos.critical_temperature import (
+from steelfire.memos.critical_temperature import (
     CriticalTempMemoInput,
     render_critical_temp_memo,
     render_critical_temp_memo_full,

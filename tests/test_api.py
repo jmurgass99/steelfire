@@ -5,7 +5,7 @@ import pytest
 pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
-from firesteeljm.api.app import create_app
+from steelfire.api.app import create_app
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +63,7 @@ def test_health(client: TestClient) -> None:
 def test_root(client: TestClient) -> None:
     r = client.get("/")
     assert r.status_code == 200
-    assert r.json()["app"] == "FireSteelJm"
+    assert r.json()["app"] == "SteelFire"
 
 
 @pytest.mark.skipif(not _HAS_SYMPY, reason="sympy no instalado")

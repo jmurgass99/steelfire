@@ -5,7 +5,7 @@ import pytest
 
 sympy = pytest.importorskip("sympy")
 
-from firesteeljm.fire_curves_sympy import (  # noqa: E402
+from steelfire.fire_curves_sympy import (  # noqa: E402
     iso_834,
     hydrocarbon,
     external,

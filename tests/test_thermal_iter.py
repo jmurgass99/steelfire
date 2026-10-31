@@ -1,7 +1,7 @@
 """Tests para thermal_iter (EN 1993-1-2 retention + history)."""
 import pytest
 
-from firesteeljm.thermal_iter import (
+from steelfire.thermal_iter import (
     critical_time_to_failure,
     k_E,
     k_p,

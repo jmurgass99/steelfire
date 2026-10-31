@@ -37,15 +37,15 @@ from __future__ import annotations
 
 import pytest
 
-from firesteeljm import protection_catalog
-from firesteeljm.en_steel_temperature import (
+from steelfire import protection_catalog
+from steelfire.en_steel_temperature import (
     STATUS_CON_PROTECCION_CUMPLE,
     STATUS_CON_PROTECCION_NO_CUMPLE,
     STATUS_NO_VERIFICADO,
     check_fire_resistance_from_profile,
     rating_covers,
 )
-from firesteeljm.protection_catalog import (
+from steelfire.protection_catalog import (
     METHOD_CERTIFIED_TEST,
     METHOD_INERT_LAYER,
     CertifiedRating,
@@ -206,7 +206,7 @@ def test_golden_r_no_acredita_integridad_ni_aislamiento():
     assert rating_covers("REI90", "EI90") is True
     # Lo que el guardian de letras caza: la comparacion de minutos por si sola
     # diria que si.
-    from firesteeljm.en_steel_temperature import parse_fire_rating_minutes
+    from steelfire.en_steel_temperature import parse_fire_rating_minutes
     assert parse_fire_rating_minutes("R120") >= parse_fire_rating_minutes("EI90")
 
 

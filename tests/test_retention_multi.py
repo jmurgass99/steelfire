@@ -1,7 +1,7 @@
 """Tests retention factors multi-código."""
 import pytest
 
-from firesteeljm.retention_multi import retention_factor
+from steelfire.retention_multi import retention_factor
 
 
 def test_20C_es_1_en_todos():
@@ -75,7 +75,7 @@ def test_golden_w01411_ky_kE_eu_567_8C():
 # ``quantity`` solo admite "E" o "Fy". Ver
 # ``test_defecto_kp_no_implementado_fallback_silencioso`` mas abajo.
 # La cobertura golden de kp,theta (los 13 nodos de la Tabla 3.1) vive sobre
-# ``firesteeljm.thermal_iter.k_p`` en tests/test_thermal_iter.py
+# ``steelfire.thermal_iter.k_p`` en tests/test_thermal_iter.py
 # (``test_golden_tabla_3_1_kp``); aqui solo se documenta la ausencia.
 # ---------------------------------------------------------------------------
 

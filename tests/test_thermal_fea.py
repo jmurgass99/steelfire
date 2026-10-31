@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 
-from firesteeljm.thermal_fea import (
+from steelfire.thermal_fea import (
     ThermalSection, ThermalResult, solve_thermal, c_steel, _gas_temperature_iso834,
 )
 

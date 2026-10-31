@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from firesteeljm.iso834 import FireEvaluator, ky_from_temperature
+from steelfire.iso834 import FireEvaluator, ky_from_temperature
 
 # EN 1993-1-2 Tabla 3.1 — k_y,theta en los nodos (transcripcion manual)
 _TABLE_31 = [

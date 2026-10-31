@@ -3,11 +3,11 @@
 Rename your product = edit this file (and optionally `git mv <slug> NEW_SLUG`).
 Everything else picks up automatically.
 """
-NAME        = "FireSteelJm"
-SLUG        = "firesteeljm"
-EXE         = "FireSteelJm.exe"
-APPDATA_DIR = "firesteeljm"
+NAME        = "SteelFire"
+SLUG        = "steelfire"
+EXE         = "SteelFire.exe"
+APPDATA_DIR = "steelfire"
 ORG         = "jmurgass99"
-REPO        = "firesteeljm"
-URL         = "https://github.com/jmurgass99/firesteeljm"
+REPO        = "steelfire"
+URL         = "https://github.com/jmurgass99/steelfire"
 TAGLINE     = "Resistencia estructural del acero en situacion de incendio usando la curva ISO 834 (EN 1993-1-2)."

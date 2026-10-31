@@ -1,4 +1,4 @@
-"""Capa de servicios de FireSteelJm: API tipada estable sobre los solvers."""
+"""Capa de servicios de SteelFire: API tipada estable sobre los solvers."""
 from __future__ import annotations
 
 from .thermal import (

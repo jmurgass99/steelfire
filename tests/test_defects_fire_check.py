@@ -1,4 +1,4 @@
-"""Tests de regresion para defectos reales de ``firesteeljm.en_steel_temperature``.
+"""Tests de regresion para defectos reales de ``steelfire.en_steel_temperature``.
 
 Cubre cuatro defectos localizados y reproducidos:
 
@@ -23,8 +23,8 @@ import math
 
 import pytest
 
-from firesteeljm import protection_catalog
-from firesteeljm.en_steel_temperature import (
+from steelfire import protection_catalog
+from steelfire.en_steel_temperature import (
     ProtectedSteel,
     UnprotectedSteel,
     check_fire_resistance_from_profile,
@@ -97,7 +97,7 @@ def test_d2_parse_fire_rating(rating: str, minutos: float):
     El numero de la clase ES la duracion en minutos por definicion de la norma,
     de modo que "REI90" son 90 minutos, no 60.
     """
-    from firesteeljm.en_steel_temperature import parse_fire_rating_minutes
+    from steelfire.en_steel_temperature import parse_fire_rating_minutes
 
     assert parse_fire_rating_minutes(rating) == minutos
 
@@ -105,7 +105,7 @@ def test_d2_parse_fire_rating(rating: str, minutos: float):
 @pytest.mark.parametrize("rating", ["", "R", "sesenta", "R60X", "R-0", "60R", "XY90"])
 def test_d2_parse_fire_rating_invalido_aborta(rating: str):
     """Una cadena no interpretable ABORTA; nunca cae a un valor por defecto."""
-    from firesteeljm.en_steel_temperature import parse_fire_rating_minutes
+    from steelfire.en_steel_temperature import parse_fire_rating_minutes
 
     with pytest.raises(ValueError) as exc:
         parse_fire_rating_minutes(rating)

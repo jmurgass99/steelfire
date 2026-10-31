@@ -2,9 +2,9 @@
 from __future__ import annotations
 import pytest
 
-from firesteeljm.exceptions import ConfigurationError
-from firesteeljm.services.iso834 import ISO834Input, evaluate_iso834
-from firesteeljm.services.thermal import (
+from steelfire.exceptions import ConfigurationError
+from steelfire.services.iso834 import ISO834Input, evaluate_iso834
+from steelfire.services.thermal import (
     ThermalAnalysisInput, run_thermal_analysis,
 )
 

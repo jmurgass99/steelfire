@@ -8,7 +8,7 @@ Requisitos:
 from __future__ import annotations
 
 import pytest
-from firesteeljm.en_steel_temperature import (
+from steelfire.en_steel_temperature import (
     critical_temperature,
     check_fire_resistance_from_profile,
 )

@@ -84,7 +84,7 @@ def thermal_history(time_minutes: Sequence[float],
     Args:
         time_minutes: malla temporal del análisis (minutos desde t=0).
         temperature_provider: callable(t_min) -> T(°C). Suele ser ISO 834
-            (`firesteeljm.iso834.iso834_temperature`) o equivalente.
+            (`steelfire.iso834.iso834_temperature`) o equivalente.
         sections: nombres de secciones a las que aplicar el modificador
             (sólo informativo en el dict ``property_modifiers``).
 

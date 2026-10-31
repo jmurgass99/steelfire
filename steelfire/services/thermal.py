@@ -1,6 +1,6 @@
 """Servicio de análisis térmico 2D para secciones de acero expuestas a fuego.
 
-Envuelve :func:`firesteeljm.thermal_fea.solve_thermal` con tipos estables
+Envuelve :func:`steelfire.thermal_fea.solve_thermal` con tipos estables
 (dataclasses) pensados para integraciones (REST API, CLI, otros paquetes).
 """
 from __future__ import annotations

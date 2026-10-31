@@ -1,5 +1,5 @@
 """Tests protection catalog."""
-from firesteeljm.protection_catalog import CATALOG, lookup, recommend
+from steelfire.protection_catalog import CATALOG, lookup, recommend
 
 
 def test_catalog_count():

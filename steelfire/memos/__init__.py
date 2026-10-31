@@ -1,4 +1,4 @@
-"""Memorias de calculo handcalcs para FireSteelJm."""
+"""Memorias de calculo handcalcs para SteelFire."""
 from .critical_temperature import (
     CriticalTempMemoInput,
     CriticalTempMemoResult,

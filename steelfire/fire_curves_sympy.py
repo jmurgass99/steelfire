@@ -26,7 +26,7 @@ try:
 except ImportError:  # pragma: no cover
     _HAS_SYMPY = False
 
-log = logging.getLogger("firesteeljm.fire_curves_sympy")
+log = logging.getLogger("steelfire.fire_curves_sympy")
 
 
 @dataclass
@@ -42,7 +42,7 @@ class FireCurveSpec:
 
 def _require_sympy() -> None:
     if not _HAS_SYMPY:
-        raise ImportError("sympy no esta instalado (instalar firesteeljm[analytic])")
+        raise ImportError("sympy no esta instalado (instalar steelfire[analytic])")
 
 
 def iso_834() -> FireCurveSpec:

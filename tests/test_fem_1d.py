@@ -1,7 +1,7 @@
 """Tests FEM 1D thermal."""
 import pytest
 
-from firesteeljm.fem_thermal_1d import Material1D, solve_1d_thermal
+from steelfire.fem_thermal_1d import Material1D, solve_1d_thermal
 
 
 def iso834(t_min: float) -> float:

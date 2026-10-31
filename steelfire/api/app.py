@@ -1,8 +1,8 @@
-"""FastAPI app para FireSteelJm.
+"""FastAPI app para SteelFire.
 
 Instalar con::
 
-    pip install firesteeljm[api]
+    pip install steelfire[api]
 """
 from ..exceptions import DependencyError
 
@@ -18,7 +18,7 @@ def create_router():
         from pydantic import BaseModel, Field
     except ImportError as exc:  # pragma: no cover
         raise DependencyError(
-            "FastAPI no está instalado. Instale: pip install firesteeljm[api]"
+            "FastAPI no está instalado. Instale: pip install steelfire[api]"
         ) from exc
 
     from typing import Literal
@@ -31,7 +31,7 @@ def create_router():
 
     @router.get("/")
     def root() -> dict:
-        return {"app": "FireSteelJm", "status": "OK"}
+        return {"app": "SteelFire", "status": "OK"}
 
     @router.get("/api/thermal/health")
     def health() -> dict:
@@ -71,7 +71,7 @@ def create_router():
         except ImportError as exc:
             raise HTTPException(
                 status_code=503,
-                detail=f"sympy requerido (instalar firesteeljm[analytic]): {exc}",
+                detail=f"sympy requerido (instalar steelfire[analytic]): {exc}",
             ) from exc
 
         theta = [float(spec.lambda_t_min(t)) for t in body.t_minutes]
@@ -96,7 +96,7 @@ def create_router():
         except ImportError as exc:
             raise HTTPException(
                 status_code=503,
-                detail=f"sympy requerido (instalar firesteeljm[analytic]): {exc}",
+                detail=f"sympy requerido (instalar steelfire[analytic]): {exc}",
             ) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -220,10 +220,10 @@ def create_app():
         from fastapi.middleware.cors import CORSMiddleware
     except ImportError as exc:  # pragma: no cover
         raise DependencyError(
-            "FastAPI no está instalado. Instale: pip install firesteeljm[api]"
+            "FastAPI no está instalado. Instale: pip install steelfire[api]"
         ) from exc
 
-    app = FastAPI(title="FireSteelJm API", version="1.1.0")
+    app = FastAPI(title="SteelFire API", version="1.1.0")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

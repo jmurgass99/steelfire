@@ -4,7 +4,7 @@ MEDIDO el 2026-09-17 recorriendo las 356 rutas del OpenAPI del gateway: de las
 356 llamadas, **un solo 500**, y era este.
 
     POST /fire/curve  ->  500 Internal Server Error
-    ImportError: sympy no esta instalado (instalar firesteeljm[analytic])
+    ImportError: sympy no esta instalado (instalar steelfire[analytic])
 
 La guarda ya existia... en el sitio equivocado. `post_fire_curve` envuelve el
 **import** de `fire_curves_sympy` en un `try/except ImportError -> 503`, pero ese
@@ -27,7 +27,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from firesteeljm.api.app import create_app  # noqa: E402
+from steelfire.api.app import create_app  # noqa: E402
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def cliente() -> TestClient:
 @pytest.fixture
 def sin_sympy(monkeypatch):
     """Finge que el extra `analytic` no esta instalado."""
-    from firesteeljm import fire_curves_sympy
+    from steelfire import fire_curves_sympy
 
     monkeypatch.setattr(fire_curves_sympy, "_HAS_SYMPY", False)
     return fire_curves_sympy
@@ -55,7 +55,7 @@ def test_el_503_dice_QUE_falta_y_como_instalarlo(cliente, sin_sympy) -> None:
     r = cliente.post("/fire/curve", json={"curve": "iso834", "t_minutes": [0]})
     detalle = r.json().get("detail", "")
     assert "sympy" in detalle, detalle
-    assert "firesteeljm[analytic]" in detalle, (
+    assert "steelfire[analytic]" in detalle, (
         "un 503 sin decir como resolverlo obliga al cliente a adivinar")
 
 
@@ -63,7 +63,7 @@ def test_la_temperatura_critica_sin_sympy_tambien_responde_503(cliente, sin_symp
     """La misma guarda mal puesta estaba en el segundo endpoint."""
     r = cliente.post("/fire/critical_temperature", json={"utilization": 0.6})
     assert r.status_code == 503
-    assert "firesteeljm[analytic]" in r.json().get("detail", "")
+    assert "steelfire[analytic]" in r.json().get("detail", "")
 
 
 def test_con_sympy_la_curva_se_calcula_de_verdad(cliente) -> None:

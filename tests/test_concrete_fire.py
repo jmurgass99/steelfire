@@ -1,6 +1,6 @@
-"""Tests for firesteeljm.concrete_fire (EN 1992-1-2)."""
+"""Tests for steelfire.concrete_fire (EN 1992-1-2)."""
 import pytest
-from firesteeljm.concrete_fire import (
+from steelfire.concrete_fire import (
     concrete_kc_T,
     rebar_ks_T,
     isotherm_method_500,

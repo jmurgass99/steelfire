@@ -1,4 +1,4 @@
-"""Jerarquía de excepciones de FireSteelJm.
+"""Jerarquía de excepciones de SteelFire.
 
 Todas heredan adicionalmente de ``ValueError`` para preservar la
 compatibilidad hacia atrás con código que captura ``ValueError`` desde
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 
 class FireSteelError(ValueError):
-    """Excepción base del paquete FireSteelJm."""
+    """Excepción base del paquete SteelFire."""
 
 
 class ConfigurationError(FireSteelError):

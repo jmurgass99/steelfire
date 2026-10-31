@@ -1,16 +1,32 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "firesteeljm"
+name = "steelfire"
 version = "1.1.0"
-description = "Structural Fire Design for Steel EN 1993-1-2"
+description = "Structural steel in fire: ISO 834 and parametric fire curves, EN 1993-1-2 steel temperature, critical temperature and 2D thermal FEA."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.23", "jmstructural-common"]
+license = { text = "MIT" }
+authors = [{ name = "Jesús Murgas" }]
+keywords = ["fire", "structural-fire-engineering", "steel", "eurocode", "EN-1993-1-2", "ISO-834", "thermal-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.23"]
 
 [project.optional-dependencies]
+analytic = ["sympy>=1.12"]
+memos = ["handcalcs>=1.6"]
 test = [
     "pytest>=7.0",
     "pytest-timeout>=2.1",
@@ -23,12 +39,14 @@ api = [
     "pydantic>=2.0",
     "httpx>=0.25",
 ]
-analytic = [
-    "sympy>=1.12",
-]
+
+[project.urls]
+Homepage = "https://github.com/jmurgass99/steelfire"
+Repository = "https://github.com/jmurgass99/steelfire"
+Issues = "https://github.com/jmurgass99/steelfire/issues"
 
 [tool.setuptools.packages.find]
-include = ["firesteeljm*"]
+include = ["steelfire*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]
@@ -43,13 +61,10 @@ markers = [
 
 [tool.coverage.run]
 branch = true
-source = ["firesteeljm"]
+source = ["steelfire"]
 omit = ["*/__pycache__/*", "*/tests/*"]
 
 [tool.coverage.report]
 fail_under = 75
 show_missing = true
 skip_empty = true
-
-[tool.uv.sources]
-jmstructural-common = { workspace = true }
