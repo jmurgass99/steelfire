@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "steelfire"
-version = "1.1.0"
-description = "Structural steel in fire: ISO 834 and parametric fire curves, EN 1993-1-2 steel temperature, critical temperature and 2D thermal FEA."
+version = "1.2.0"
+description = "Structural steel in fire to EN 1993-1-2: nominal fire curves (ISO 834, hydrocarbon, external, ASTM E119, RWS), unprotected and protected steel temperature, critical temperature, reduction factors (EN 1993-1-2 and AISC 360 Appendix 4), fire-rating check with passive protection, 2D and 1D thermal solvers, EN 1992-1-2 concrete isotherm and zone methods, fire load density."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Jesús Murgas" }]
-keywords = ["fire", "structural-fire-engineering", "steel", "eurocode", "EN-1993-1-2", "ISO-834", "thermal-analysis"]
+keywords = ["structural-fire-engineering", "fire-design", "fire-resistance", "steel", "eurocode-3", "EN-1993-1-2", "EN-1991-1-2", "EN-1992-1-2", "ISO-834", "critical-temperature", "fire-protection", "intumescent", "AISC-360", "thermal-analysis", "finite-differences", "fire-load-density"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",

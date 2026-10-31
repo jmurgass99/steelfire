@@ -1,0 +1,5 @@
+Sección 200 x 400 mm, curva ISO 834
+
+4 caras expuestas, sin protección          15 min: máx    232 / media    151 °C | 30 min: máx    444 / media    339 °C
+3 caras expuestas (cara superior protegida) 15 min: máx    233 / media    131 °C | 30 min: máx    444 / media    295 °C
+4 caras, 15 mm de protección (k = 0,12 W/mK) 15 min: máx     77 / media     55 °C | 30 min: máx    146 / media    114 °C

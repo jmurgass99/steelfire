@@ -2,7 +2,7 @@
 SteelFire - Structural Fire Design for Steel EN 1993-1-2
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 from .thermal_fea import (
     ThermalSection,

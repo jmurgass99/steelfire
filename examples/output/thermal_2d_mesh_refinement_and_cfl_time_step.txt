@@ -1,0 +1,8 @@
+  n  Δx [mm]  Δt_max [s]   pasos  T_max 10 min  T_media
+  5       40      29.656      60           148      119
+ 10       20       7.414     210           162      118
+ 20       10       1.853     810           169      117
+
+Δt = 5·Δt_max → ValueError: dt=37.0694s viola CFL (dt_max=7.4139s). Reduce dt o aumenta resolución.
+
+Diferencia de la media respecto a la malla de 20: n = 5 → +1.9%, n = 10 → +0.5%. La máxima (celda de esquina) sí depende del tamaño de celda.

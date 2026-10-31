@@ -1,0 +1,28 @@
+Sin proteger: μ₀ = 0.55, θ_cr = 569.1 °C, t_cr = 11.0 min → R30 NO CUMPLE
+Con placa 20 mm: θ_cr = 569.1 °C, t_cr = 58.8 min → R60 NO CUMPLE
+
+--- Markdown (primeras líneas, caso sin proteger) ---
+# Memoria -- Temperatura critica del acero (EN 1993-1-2)
+
+**Elemento:** beam
+**Seccion:** IPE 300 (sin proteger)
+**Factor de seccion:** Am/V = 200 m^-1
+**Factor de sombra:** ksh = 0.90
+
+## Nivel de carga
+
+$$\mu_0 = \frac{E_{fi}}{R_{fi,20°C}} = 0.5500$$
+
+## Temperatura critica
+
+$$\theta_{cr} = 39.19 \cdot \ln\!\left(\frac{1}{0.9674 \cdot \mu_0^{3.833}} - 1\right) + 482 = 569.1\;°C$$
+
+## Tiempo de colapso (ISO 834)
+
+$$\theta_a(t_{cr}) = \theta_{cr} \Rightarrow t_{cr} = 11.0\;\text{min}$$
+
+## Verificacion
+
+Resistencia requerida: R = 30 min
+
+LaTeX: 242 caracteres

@@ -1,0 +1,11 @@
+Am/V = 200 m⁻¹, μ₀ = 0.6 → θ_cr = 554 °C; placa λ_p = 0.17 W/mK
+
+d_p [mm]  θ 60 min   R60  θ 90 min   R90
+    12.5       698    NO       795    NO
+    15.0       652    NO       748    NO
+    20.0       566    NO       708    NO
+    25.0       492    OK       642    NO
+    30.0       428    OK       578    NO
+    40.0       327    OK       467    OK
+
+La ec. 4.27 anula el enfriamiento ficticio del término exponencial mientras el gas sube; el espesor final debe tomarse del catálogo del fabricante para ese A_p/V.

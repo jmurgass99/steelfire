@@ -1,0 +1,22 @@
+parse_fire_rating_minutes(     'R60') =    60 min
+parse_fire_rating_minutes(    'R 90') =    90 min
+parse_fire_rating_minutes(   'REI90') =    90 min
+parse_fire_rating_minutes(  'REI-90') =    90 min
+parse_fire_rating_minutes(    'EI30') =    30 min
+parse_fire_rating_minutes( 'rei 120') =   120 min
+
+¿cubre la certificación al requisito?
+  REI120  → R90   : True
+  R120    → EI90  : False
+  R90     → R120  : False
+  REI60   → REI60 : True
+  REI90   → EI60  : True
+  R120    → R90   : True
+
+'R-abc' → ValueError: requisito de resistencia al fuego no interpretable: 'R-abc'. Formatos aceptados: letras de…
+
+'60' → ValueError: requisito de resistencia al fuego no interpretable: '60'. Formatos aceptados: letras de cl…
+
+'RX60' → ValueError: requisito de resistencia al fuego no interpretable: 'RX60'. Formatos aceptados: letras de …
+
+'R0' → ValueError: requisito de resistencia al fuego no positivo: 'R0'. Formatos aceptados: letras de clase E…

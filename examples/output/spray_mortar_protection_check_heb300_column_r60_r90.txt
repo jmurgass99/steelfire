@@ -1,0 +1,15 @@
+R60 con spray: θ_cr = 540 °C, θ sin proteger = 938 °C; UL 60-spray-mortar 25.0 mm → θ_prot = 300 °C; estado CON_PROTECCION_CUMPLE
+R90 con spray: θ_cr = 540 °C, θ sin proteger = 1002 °C; sin producto evaluado; estado NO_VERIFICADO
+R90 con board: θ_cr = 540 °C, θ sin proteger = 1002 °C; EN 90-board-cem 18.8 mm → θ_prot = 624 °C; estado CON_PROTECCION_NO_CUMPLE
+R120 con board: θ_cr = 540 °C, θ sin proteger = 1046 °C; EN 120-board-silic 30.0 mm → θ_prot = 552 °C; estado CON_PROTECCION_NO_CUMPLE
+
+Espesor mínimo de EN 90-board-cem para R90 (θ_cr = 540 °C):
+  d_p =  8 mm → θ(90 min) =   818 °C 
+  d_p = 10 mm → θ(90 min) =   755 °C 
+  d_p = 12 mm → θ(90 min) =   733 °C 
+  d_p = 14 mm → θ(90 min) =   709 °C 
+  d_p = 16 mm → θ(90 min) =   673 °C 
+  d_p = 18 mm → θ(90 min) =   637 °C 
+  d_p = 20 mm → θ(90 min) =   603 °C 
+  d_p = 22 mm → θ(90 min) =   570 °C 
+  d_p = 24 mm → θ(90 min) =   540 °C OK
