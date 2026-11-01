@@ -1,0 +1,23 @@
+{
+  "name": "@steelfire/web",
+  "version": "1.1.0",
+  "description": "Ultralight VanJS + Three.js + WebAssembly 3D steel section fire heating & EN 1993-1-2 retention analyzer with ThermalSectionMapping",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview --open",
+    "test": "vitest run",
+    "build:wasm": "emcc ./src/solver/cpp/thermalKernel.cpp -o ./src/solver/cpp/built/thermalKernel.wasm -O3 -s STANDALONE_WASM --no-entry -s EXPORTED_FUNCTIONS=_steelConductivityLinear,_steelTempIncrement"
+  },
+  "dependencies": {
+    "three": "^0.170.0",
+    "vanjs-core": "^1.5.2"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.5"
+  }
+}
