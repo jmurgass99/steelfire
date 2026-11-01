@@ -49,6 +49,9 @@ Issues = "https://github.com/jmurgass99/steelfire/issues"
 include = ["steelfire*"]
 exclude = ["tests*"]
 
+[tool.setuptools.package-data]
+steelfire = ["py.typed"]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]

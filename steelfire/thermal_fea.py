@@ -35,6 +35,14 @@ def c_steel(T_C: float) -> float:
     return 650.0
 
 
+def k_steel(T_C: float) -> float:
+    """Conductividad térmica del acero λ_a(θ_a) [W/(m·K)] — EN 1993-1-2 §3.4.1.3."""
+    T = float(np.clip(T_C, 20.0, 1200.0))
+    if T < 800.0:
+        return 54.0 - 3.33e-2 * T
+    return 27.3
+
+
 @dataclass
 class ThermalSection:
     """Sección rectangular de acero (con o sin protección). Las cuatro caras
@@ -99,6 +107,7 @@ def solve_thermal(
     dt: float | None = None,
     t_save_every: int = 10,
     gas_temperature_fn: Callable[[float], float] = _gas_temperature_iso834,
+    variable_k: bool = False,
 ) -> ThermalResult:
     """Integra la ecuación de calor 2D por diferencias finitas explícitas.
 
@@ -108,6 +117,8 @@ def solve_thermal(
         dt: paso de tiempo (s). Si None se calcula para estabilidad (CFL).
         t_save_every: guardar el campo cada N steps.
         gas_temperature_fn: función T_gas(t_s) en °C; por defecto ISO 834.
+        variable_k: si True, usa conductividad térmica dependiente de T según
+            EN 1993-1-2 §3.4.1.3.
 
     Returns:
         ThermalResult con historial de campos T(x,y) y series de T_max, T_mean.
@@ -117,7 +128,8 @@ def solve_thermal(
     dy = section.h / n_y
     # Estabilidad CFL para difusión explícita:
     # dt <= (1 / 2α) · (dx²·dy²) / (dx² + dy²)
-    alpha_diff_max = K_STEEL / (RHO_STEEL * 425.0)  # diffusividad mínima ~ c bajo
+    k_max_cfl = 54.0 if variable_k else K_STEEL
+    alpha_diff_max = k_max_cfl / (RHO_STEEL * 425.0)  # diffusividad mínima ~ c bajo
     dt_max = 0.5 * (dx**2 * dy**2) / (dx**2 + dy**2) / alpha_diff_max
     if dt is None:
         dt = 0.4 * dt_max  # margen de seguridad
@@ -137,8 +149,10 @@ def solve_thermal(
     for step in range(1, n_steps):
         t = step * dt
         Tg = gas_temperature_fn(t)
-        c = c_steel(float(T.mean()))
-        alpha = K_STEEL / (RHO_STEEL * c)
+        t_mean_now = float(T.mean())
+        c = c_steel(t_mean_now)
+        k_eff = k_steel(t_mean_now) if variable_k else K_STEEL
+        alpha = k_eff / (RHO_STEEL * c)
         # Conducción en TODA la malla, con gradiente nulo en los bordes (nodos
         # fantasma por replicación). Hasta 2026-10-31 el laplaciano solo se
         # aplicaba al interior y las celdas de borde se actualizaban únicamente

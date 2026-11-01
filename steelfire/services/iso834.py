@@ -18,6 +18,7 @@ class ISO834Input:
     time_minutes: float
     section_factor_amv: float = 150.0
     is_protected: bool = False
+    use_en1993_exact_c_a: bool = False
 
     def validate(self) -> None:
         if self.time_minutes < 0:
@@ -54,6 +55,7 @@ def evaluate_iso834(inp: ISO834Input) -> ISO834Result:
         time_minutes=inp.time_minutes,
         section_factor_amv=inp.section_factor_amv,
         is_protected=inp.is_protected,
+        use_en1993_exact_c_a=inp.use_en1993_exact_c_a,
     )
     rep = fe.evaluation_report()
     return ISO834Result(

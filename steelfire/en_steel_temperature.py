@@ -40,6 +40,90 @@ def iso834_gas(t_min: float) -> float:
 
 
 @dataclass(frozen=True)
+class ParametricFireInput:
+    """Parámetros de curva de incendio paramétrica según EN 1991-1-2 Anexo A.
+
+    Atributos:
+        O_m_half: factor de abertura O = A_v · sqrt(h_eq) / A_t [m^(1/2)] (0.02 <= O <= 0.20).
+        b_J_m2s05K: inercia térmica del cerramiento b = sqrt(rho·c·lambda) [J/(m²·s^0.5·K)].
+        q_t_d_MJ_m2: densidad de carga de fuego de diseño referida al área total A_t [MJ/m²].
+        t_lim_min: tiempo límite de crecimiento (min): 25 (lento), 20 (medio), 15 (rápido).
+    """
+    O_m_half: float = 0.04
+    b_J_m2s05K: float = 1160.0
+    q_t_d_MJ_m2: float = 150.0
+    t_lim_min: float = 20.0
+
+
+def parametric_fire_gas(
+    t_min: float,
+    O_m_half: float = 0.04,
+    b_J_m2s05K: float = 1160.0,
+    q_t_d_MJ_m2: float = 150.0,
+    t_lim_min: float = 20.0,
+) -> float:
+    """Temperatura de los gases Θ_g (°C) según la curva paramétrica de EN 1991-1-2 Anexo A."""
+    if t_min <= 0.0:
+        return 20.0
+    O = float(min(max(O_m_half, 0.02), 0.20))
+    b = float(min(max(b_J_m2s05K, 100.0), 2200.0))
+    q_td = float(min(max(q_t_d_MJ_m2, 50.0), 1000.0))
+    t_hr = t_min / 60.0
+    t_lim_hr = t_lim_min / 60.0
+
+    Gamma = ((O / 0.04) / (b / 1160.0)) ** 2
+    t_max_hr = max(0.2e-3 * q_td / O, t_lim_hr)
+
+    if t_hr <= t_max_hr:
+        if t_max_hr == t_lim_hr and (0.2e-3 * q_td / O) < t_lim_hr:
+            O_lim = 0.1e-3 * q_td / t_lim_hr
+            Gamma_lim = ((O_lim / 0.04) / (b / 1160.0)) ** 2
+            if O > 0.04 and q_td < 75.0 and b < 1160.0:
+                k = 1.0 + ((O - 0.04) / 0.04) * ((q_td - 75.0) / 75.0) * ((1160.0 - b) / 1160.0)
+                Gamma_lim *= k
+            t_star = Gamma_lim * t_hr
+        else:
+            t_star = Gamma * t_hr
+        return 20.0 + 1325.0 * (
+            1.0
+            - 0.324 * math.exp(-0.2 * t_star)
+            - 0.204 * math.exp(-1.7 * t_star)
+            - 0.472 * math.exp(-19.0 * t_star)
+        )
+
+    # Fase de enfriamiento (EN 1991-1-2 §A.10 - A.12)
+    t_star_max = Gamma * t_max_hr
+    theta_max = 20.0 + 1325.0 * (
+        1.0
+        - 0.324 * math.exp(-0.2 * t_star_max)
+        - 0.204 * math.exp(-1.7 * t_star_max)
+        - 0.472 * math.exp(-19.0 * t_star_max)
+    )
+    x_factor = 1.0 if t_max_hr > t_lim_hr else (t_lim_hr * Gamma / max(t_star_max, 1e-9))
+    t_star = Gamma * t_hr
+    if t_star_max <= 0.5:
+        theta = theta_max - 625.0 * (t_star - t_star_max * x_factor)
+    elif t_star_max < 2.0:
+        theta = theta_max - (250.0 * (3.0 - t_star_max)) * (t_star - t_star_max * x_factor)
+    else:
+        theta = theta_max - 250.0 * (t_star - t_star_max * x_factor)
+    return max(theta, 20.0)
+
+
+def parametric_fire_curve(inp: ParametricFireInput) -> Callable[[float], float]:
+    """Devuelve un callable ``gas_curve(t_min)`` para usar con :func:`steel_temperature_history`."""
+    def _curve(t_min: float) -> float:
+        return parametric_fire_gas(
+            t_min,
+            O_m_half=inp.O_m_half,
+            b_J_m2s05K=inp.b_J_m2s05K,
+            q_t_d_MJ_m2=inp.q_t_d_MJ_m2,
+            t_lim_min=inp.t_lim_min,
+        )
+    return _curve
+
+
+@dataclass(frozen=True)
 class UnprotectedSteel:
     Am_V_1_m: float          # factor de seccion Am/V (1/m)
     ksh: float = 1.0         # factor de sombra (I-sections < 1)
@@ -503,8 +587,11 @@ __all__ = [
     "UnprotectedSteel",
     "ProtectedSteel",
     "FireDesignCheckResult",
+    "ParametricFireInput",
     "specific_heat_steel",
     "iso834_gas",
+    "parametric_fire_gas",
+    "parametric_fire_curve",
     "steel_temperature_history",
     "steel_temperature_at",
     "critical_temperature",

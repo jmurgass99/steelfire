@@ -4,15 +4,23 @@ iso834.py - Fire modelling and temperature calculations for steel.
 import math
 
 class FireEvaluator:
-    def __init__(self, time_minutes: float, section_factor_amv: float, is_protected: bool = False):
+    def __init__(
+        self,
+        time_minutes: float,
+        section_factor_amv: float,
+        is_protected: bool = False,
+        use_en1993_exact_c_a: bool = False,
+    ):
         """
         :param time_minutes: Time of fire exposure in minutes.
         :param section_factor_amv: Massivity factor Am/V in m^-1 (e.g. 150).
         :param is_protected: True if section is protected with fire-resistant materials.
+        :param use_en1993_exact_c_a: If True, integrates EN 1993-1-2 §4.2.5 with exact c_a(θ_a).
         """
         self.time_minutes = time_minutes
         self.section_factor = section_factor_amv
         self.is_protected = is_protected
+        self.use_en1993_exact_c_a = use_en1993_exact_c_a
         
     def gas_temperature(self) -> float:
         """
@@ -23,9 +31,23 @@ class FireEvaluator:
         
     def steel_temperature(self) -> float:
         """
-        Simplified steel temperature (Theta_a) calculation.
-        For demonstration, assuming an incremental simplified model based on Am/V.
+        Steel temperature (Theta_a) calculation.
+        If ``use_en1993_exact_c_a=True``, delegates to EN 1993-1-2 §4.2.5 incremental solver.
         """
+        if self.use_en1993_exact_c_a:
+            from .en_steel_temperature import ProtectedSteel, UnprotectedSteel, steel_temperature_at
+            if self.is_protected:
+                sec = ProtectedSteel(
+                    Am_V_1_m=self.section_factor,
+                    dp_m=0.015,
+                    lambda_p=0.12,
+                    cp=1100.0,
+                    rho_p=400.0,
+                )
+            else:
+                sec = UnprotectedSteel(Am_V_1_m=self.section_factor, ksh=1.0)
+            return float(steel_temperature_at(sec, duration_min=self.time_minutes))
+
         t_g = self.gas_temperature()
         if self.is_protected:
             # Protected steel heats up much slower
