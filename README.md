@@ -1,5 +1,7 @@
 # steelfire — acero estructural en situación de incendio (EN 1993-1-2)
 
+**Español** · [English](README.en.md) · [Português](README.pt.md) · [Italiano](README.it.md)
+
 Temperatura del acero sin proteger y protegido bajo las curvas nominales de fuego (EN 1993-1-2 §4.2.5, ec. 4.25 y 4.27), temperatura crítica por grado de utilización (§4.2.4), factores de reducción k_y, k_E y k_p (Tabla 3.1 y AISC 360 Apéndice 4), comprobación de la clase R exigida con la protección pasiva del catálogo, solvers térmicos 2D y 1D, métodos de la isoterma de 500 °C y de las zonas para hormigón (EN 1992-1-2 Anexo B) y densidad de carga de fuego. Solo depende de `numpy`; las funciones están ancladas a ejercicios resueltos de examen y a la aritmética de la norma.
 
 [![CI](https://github.com/jmurgass99/steelfire/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/steelfire/actions/workflows/ci.yml)
