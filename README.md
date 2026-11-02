@@ -25,7 +25,7 @@ Tienes un perfil con su factor de sección Am/V, un grado de utilización en sit
 - obtener solicitaciones ni grados de utilización: no hay análisis estructural;
 - verificar pinturas intumescentes sin el informe de ensayo del fabricante: el chequeo responde NO_VERIFICADO, por diseño;
 - secciones compuestas acero-hormigón (EN 1994-1-2) o madera: no están;
-- fuegos paramétricos de EN 1991-1-2 Anexo A: solo las curvas nominales (la API anuncia «paramétrica» pero sirve ISO 834, hidrocarburos y externa);
+- servir fuegos paramétricos por la API: la curva del Anexo A de EN 1991-1-2 está en `en_steel_temperature.parametric_fire_gas` (corregida en 1.2.1, ver Limitaciones), pero la API anuncia «paramétrica» y sirve ISO 834, hidrocarburos y externa;
 - AS 4100: el código AU se enruta a la tabla de EN 1993-1-2 sin ajustes (un test lo documenta).
 
 ## Instalación
@@ -35,20 +35,20 @@ pip install git+https://github.com/jmurgass99/steelfire.git
 pip install "steelfire[analytic,memos,api] @ git+https://github.com/jmurgass99/steelfire.git"   # curvas simbólicas (sympy), memorias (handcalcs), API REST
 ```
 
-Para desarrollo: `git clone`, `pip install -e ".[test,api,analytic,memos]"`, `pytest -q` (20 ficheros de tests). En Windows, si la consola no es UTF-8, ejecuta los ejemplos con `python -X utf8 examples/<nombre>.py`.
+Para desarrollo: `git clone`, `pip install -e ".[test,api,analytic,memos]"`, `pytest -q` (23 ficheros de tests). En Windows, si la consola no es UTF-8, ejecuta los ejemplos con `python -X utf8 examples/<nombre>.py`.
 
 ## Capacidades
 
 | Capacidad | Módulos | Norma o referencia | Casos de uso |
 |---|---|---|---|
-| Curvas de fuego y temperatura del acero: ISO 834, hidrocarburos, externa, ASTM E119, RWS; método incremental sin proteger (con k_sh) y protegido; calor específico | `en_steel_temperature`, `fire_curves_sympy` | EN 1991-1-2 §3.2; EN 1993-1-2 §3.4.1.2, §4.2.5.1 (ec. 4.25, 4.26a), §4.2.5.2 (ec. 4.27) | [6 casos](#1-curvas-de-fuego-y-temperatura-del-acero) |
+| Curvas de fuego y temperatura del acero: ISO 834, hidrocarburos, externa, ASTM E119, RWS, paramétrica del Anexo A de EN 1991-1-2; método incremental sin proteger (con k_sh) y protegido; calor específico | `en_steel_temperature`, `fire_curves_sympy` | EN 1991-1-2 §3.2; EN 1993-1-2 §3.4.1.2, §4.2.5.1 (ec. 4.25, 4.26a), §4.2.5.2 (ec. 4.27) | [7 casos](#1-curvas-de-fuego-y-temperatura-del-acero) |
 | Temperatura crítica, factores de reducción multinorma, historia térmica para modelos de barras, memoria de cálculo | `en_steel_temperature`, `iso834`, `thermal_iter`, `retention_multi`, `memos` | EN 1993-1-2 §4.2.4 (ec. 4.22), §3.2.1 Tabla 3.1; AISC 360-16/22 Ap. 4 Tabla A-4.2.1 | [5 casos](#2-temperatura-crítica-factores-de-reducción-y-tiempo-de-colapso) |
 | Comprobación por perfil y protección pasiva: clase exigida, catálogo con método de verificación (capa inerte o ensayo certificado), clasificaciones EN 13501-2 | `en_steel_temperature.check_fire_resistance_from_profile`, `protection_catalog` | EN 1993-1-2 §4.2.5.2; EN 13501-2; UL 263 / EN 13381-8 | [5 casos](#3-comprobación-por-perfil-y-protección-pasiva) |
 | Análisis térmico 2D por diferencias finitas y 1D por elementos finitos, servicio tipado | `thermal_fea`, `fem_thermal_1d`, `services.thermal` | Ecuación del calor con flujo convectivo-radiativo (EN 1991-1-2 §3.1) | [5 casos](#4-análisis-térmico-2d-y-1d) |
 | Hormigón al fuego y carga de fuego: isoterma de 500 °C, zonas, distancia al eje por clase, k_c y k_s; q_f,d y duración equivalente | `concrete_fire`, `fire_load_density` | EN 1992-1-2 Anexo B.1/B.2, Tablas 3.1, 3.2a, 5.2a, 5.5, 5.8; EN 1991-1-2 Anexo E | [5 casos](#5-hormigón-al-fuego-y-carga-de-fuego) |
 | API REST | `api` | — | [1 caso](#6-api-rest) |
 
-Los 27 scripts de `examples/` se ejecutaron en un entorno limpio antes de publicarse; su salida está en `examples/output/` y es la que se reproduce aquí.
+Los 28 scripts de `examples/` se ejecutaron en un entorno limpio antes de publicarse; su salida está en `examples/output/` y es la que se reproduce aquí.
 
 ## Casos de uso
 
@@ -108,6 +108,31 @@ ISO 834: theta_g(t) = 20 + 345*log10(8t + 1)
   dθ/dt a 60 min =     2.5 °C/min
   ∫₀⁶⁰ θ_g dt = 47846 °C·min  (media 797 °C en la primera hora)
 Hydrocarbon: ∫₀⁶⁰ θ_g dt = 63607 °C·min  (media 1060 °C)
+```
+
+</details>
+
+#### Curva paramétrica del Anexo A de EN 1991-1-2: ventilación frente a combustible
+
+<details><summary>Salida real de <code>python examples/parametric_fire_annex_a_ventilation_vs_fuel_controlled_steel_temperature.py</code></summary>
+
+```text
+q_t,d = 150 MJ/m², b = 1160, t_lim = 20 min
+
+  t [min]      0     10     20     30     45     60     75     90    120
+  O = 0.04     20    700    789    841    900    759    619    478    197
+  O = 0.10     20    733    818    525     86     20     20     20     20
+
+A mano:
+  O = 0.04: ventilación, Γ = 1.00, t_max = 45 min, Θ_max = 900 °C, t*_max = 0.750; Θ_g(55 min) = 806 °C (paquete 806)
+    continuidad en t_max: 899.9 → 899.9 °C
+  O = 0.10: combustible, Γ = 6.25, t_max = 20 min, Θ_max = 818 °C, t*_max = 1.875; Θ_g(30 min) = 525 °C (paquete 525)
+    continuidad en t_max: 818.2 → 818.0 °C
+
+Perfil sin proteger, Am/V = 200 m⁻¹ (θ_a máxima y cuándo):
+  ISO 834:            θ_a(120 min) = 1048 °C
+  paramétrica O = 0.04: θ_a,max = 895 °C a los 46 min; a 120 min 263 °C
+  paramétrica O = 0.10: θ_a,max = 784 °C a los 21 min; a 120 min 20 °C
 ```
 
 </details>
@@ -780,11 +805,11 @@ POST /api/thermal/iso834 → 200 {"time_minutes": 30.0, "gas_temperature_C": 841
 
 ## Limitaciones
 
-- `iso834.FireEvaluator` (y el endpoint `/api/thermal/iso834`) es un estimador simplificado de la temperatura del acero, no el método de §4.2.5; se mantiene por compatibilidad. Para veredictos usa `en_steel_temperature` o `/api/fire/check-profile`.
-- La temperatura de referencia T_Ed, los fuegos paramétricos del Anexo A de EN 1991-1-2 y los perfiles de temperatura del Anexo A de EN 1992-1-2 no están implementados.
+- `iso834.FireEvaluator` (y el endpoint `/api/thermal/iso834`) es por defecto un estimador simplificado de la temperatura del acero, no el método de §4.2.5; con `use_en1993_exact_c_a=True` integra §4.2.5, pero el caso protegido usa una placa fija (15 mm, λ_p = 0,12, c_p = 1100, ρ_p = 400). Para veredictos usa `en_steel_temperature` o `/api/fire/check-profile`.
+- La temperatura de referencia T_Ed y los perfiles de temperatura del Anexo A de EN 1992-1-2 no están implementados. La curva paramétrica del Anexo A de EN 1991-1-2 (aa269db) da Θ_g, pero no la API; en 1.2.1 se corrigió su enfriamiento en fuegos controlados por el combustible (Θ_max con Γ_lim y t*_max de la Ec. A.12: antes saltaba de 818 a 1052 °C en t_max).
 - `protection_catalog` tiene seis productos genéricos sin tablas de ensayo cargadas; los intumescentes solo se verifican tras cargar filas del informe del fabricante.
 - `check_fire_resistance_from_profile` usa k_sh = 0,90, A_p/V = Am/V y el espesor medio del rango del producto; afina con `ProtectedSteel` directamente.
-- `thermal_fea` usa k = 45 W/mK constante y c_a evaluado a la temperatura media de la sección; la protección se modela como una resistencia térmica en el flujo, no como capa mallada. `fem_thermal_1d` usa h = 25 W/m²K combinado en la cara expuesta y propiedades constantes.
+- `thermal_fea` usa por defecto k = 45 W/mK constante (con `variable_k=True`, λ_a(θ) de §3.4.1.3 evaluada a la temperatura media de la sección, no celda a celda) y c_a a la temperatura media; la protección se modela como una resistencia térmica en el flujo, no como capa mallada. `fem_thermal_1d` usa h = 25 W/m²K en la cara expuesta (más radiación linealizada con ε = 0,7 si `include_radiation=True`) y propiedades constantes salvo con `variable_steel_properties=True`, que reconoce el acero por el nombre de la capa («steel» o «acero»).
 - `concrete_fire` emplea un perfil de temperaturas semiempírico (difusividad dependiente de T y meseta a 100 °C); las tablas 5.2a/5.5/5.8 están resumidas.
 - `fire_load_density`: valores característicos y factores δ por defecto; k_c = 0,07 min·m²/MJ es una simplificación de EN 1991-1-2 Anexo F.
 - El código AU se enruta a la tabla EN sin los ajustes de AS 4100.

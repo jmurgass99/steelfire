@@ -1,0 +1,16 @@
+q_t,d = 150 MJ/m², b = 1160, t_lim = 20 min
+
+  t [min]      0     10     20     30     45     60     75     90    120
+  O = 0.04     20    700    789    841    900    759    619    478    197
+  O = 0.10     20    733    818    525     86     20     20     20     20
+
+A mano:
+  O = 0.04: ventilación, Γ = 1.00, t_max = 45 min, Θ_max = 900 °C, t*_max = 0.750; Θ_g(55 min) = 806 °C (paquete 806)
+    continuidad en t_max: 899.9 → 899.9 °C
+  O = 0.10: combustible, Γ = 6.25, t_max = 20 min, Θ_max = 818 °C, t*_max = 1.875; Θ_g(30 min) = 525 °C (paquete 525)
+    continuidad en t_max: 818.2 → 818.0 °C
+
+Perfil sin proteger, Am/V = 200 m⁻¹ (θ_a máxima y cuándo):
+  ISO 834:            θ_a(120 min) = 1048 °C
+  paramétrica O = 0.04: θ_a,max = 895 °C a los 46 min; a 120 min 263 °C
+  paramétrica O = 0.10: θ_a,max = 784 °C a los 21 min; a 120 min 20 °C

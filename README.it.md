@@ -25,7 +25,7 @@ Hai un profilo con il suo fattore di sezione Am/V, un grado di utilizzo nella si
 - ottenere sollecitazioni o gradi di utilizzo: non c'è analisi strutturale;
 - verificare vernici intumescenti senza il rapporto di prova del produttore: la verifica risponde NO_VERIFICADO, per scelta progettuale;
 - sezioni composte acciaio-calcestruzzo (EN 1994-1-2) o legno: non sono incluse;
-- incendi parametrici della EN 1991-1-2 Allegato A: solo le curve nominali (l'API annuncia «parametrica» ma serve ISO 834, idrocarburi ed esterna);
+- servire incendi parametrici tramite l'API: la curva dell'Allegato A della EN 1991-1-2 è in `en_steel_temperature.parametric_fire_gas` (corretta nella 1.2.1, vedi Limitazioni), ma l'API annuncia «parametrica» e serve ISO 834, idrocarburi ed esterna;
 - AS 4100: il codice AU viene instradato sulla tabella della EN 1993-1-2 senza adattamenti (un test lo documenta).
 
 ## Installazione
@@ -35,20 +35,20 @@ pip install git+https://github.com/jmurgass99/steelfire.git
 pip install "steelfire[analytic,memos,api] @ git+https://github.com/jmurgass99/steelfire.git"   # curve simboliche (sympy), relazioni (handcalcs), API REST
 ```
 
-Per lo sviluppo: `git clone`, `pip install -e ".[test,api,analytic,memos]"`, `pytest -q` (20 file di test). Su Windows, se la console non è UTF-8, esegui gli esempi con `python -X utf8 examples/<nome>.py`.
+Per lo sviluppo: `git clone`, `pip install -e ".[test,api,analytic,memos]"`, `pytest -q` (23 file di test). Su Windows, se la console non è UTF-8, esegui gli esempi con `python -X utf8 examples/<nome>.py`.
 
 ## Funzionalità
 
 | Funzionalità | Moduli | Norma o riferimento | Casi d'uso |
 |---|---|---|---|
-| Curve di incendio e temperatura dell'acciaio: ISO 834, idrocarburi, esterna, ASTM E119, RWS; metodo incrementale non protetto (con k_sh) e protetto; calore specifico | `en_steel_temperature`, `fire_curves_sympy` | EN 1991-1-2 §3.2; EN 1993-1-2 §3.4.1.2, §4.2.5.1 (eq. 4.25, 4.26a), §4.2.5.2 (eq. 4.27) | [6 casi](#1-curve-di-incendio-e-temperatura-dellacciaio) |
+| Curve di incendio e temperatura dell'acciaio: ISO 834, idrocarburi, esterna, ASTM E119, RWS, parametrica dell'Allegato A della EN 1991-1-2; metodo incrementale non protetto (con k_sh) e protetto; calore specifico | `en_steel_temperature`, `fire_curves_sympy` | EN 1991-1-2 §3.2; EN 1993-1-2 §3.4.1.2, §4.2.5.1 (eq. 4.25, 4.26a), §4.2.5.2 (eq. 4.27) | [7 casi](#1-curve-di-incendio-e-temperatura-dellacciaio) |
 | Temperatura critica, fattori di riduzione per norma, storia termica per modelli ad aste, relazione di calcolo | `en_steel_temperature`, `iso834`, `thermal_iter`, `retention_multi`, `memos` | EN 1993-1-2 §4.2.4 (eq. 4.22), §3.2.1 Tabella 3.1; AISC 360-16/22 App. 4 Tabella A-4.2.1 | [5 casi](#2-temperatura-critica-fattori-di-riduzione-e-tempo-al-collasso) |
 | Verifica per profilo e protezione passiva: classe richiesta, catalogo con metodo di verifica (strato inerte o prova certificata), classificazioni EN 13501-2 | `en_steel_temperature.check_fire_resistance_from_profile`, `protection_catalog` | EN 1993-1-2 §4.2.5.2; EN 13501-2; UL 263 / EN 13381-8 | [5 casi](#3-verifica-per-profilo-e-protezione-passiva) |
 | Analisi termica 2D alle differenze finite e 1D agli elementi finiti, servizio tipizzato | `thermal_fea`, `fem_thermal_1d`, `services.thermal` | Equazione del calore con flusso convettivo-radiativo (EN 1991-1-2 §3.1) | [5 casi](#4-analisi-termica-2d-e-1d) |
 | Calcestruzzo in caso di incendio e carico di incendio: isoterma a 500 °C, zone, distanza dall'asse per classe, k_c e k_s; q_f,d e durata equivalente | `concrete_fire`, `fire_load_density` | EN 1992-1-2 Allegato B.1/B.2, Tabelle 3.1, 3.2a, 5.2a, 5.5, 5.8; EN 1991-1-2 Allegato E | [5 casi](#5-calcestruzzo-in-caso-di-incendio-e-carico-di-incendio) |
 | API REST | `api` | — | [1 caso](#6-api-rest) |
 
-I 27 script di `examples/` sono stati eseguiti in un ambiente pulito prima della pubblicazione; il loro output è in `examples/output/` ed è quello riprodotto qui.
+I 28 script di `examples/` sono stati eseguiti in un ambiente pulito prima della pubblicazione; il loro output è in `examples/output/` ed è quello riprodotto qui.
 
 ## Casi d'uso
 
@@ -110,6 +110,31 @@ ISO 834: theta_g(t) = 20 + 345*log10(8t + 1)
   dθ/dt a 60 min =     2.5 °C/min
   ∫₀⁶⁰ θ_g dt = 47846 °C·min  (media 797 °C en la primera hora)
 Hydrocarbon: ∫₀⁶⁰ θ_g dt = 63607 °C·min  (media 1060 °C)
+```
+
+</details>
+
+#### Curva parametrica dell'Allegato A della EN 1991-1-2: ventilazione rispetto a combustibile
+
+<details><summary>Output reale di <code>python examples/parametric_fire_annex_a_ventilation_vs_fuel_controlled_steel_temperature.py</code></summary>
+
+```text
+q_t,d = 150 MJ/m², b = 1160, t_lim = 20 min
+
+  t [min]      0     10     20     30     45     60     75     90    120
+  O = 0.04     20    700    789    841    900    759    619    478    197
+  O = 0.10     20    733    818    525     86     20     20     20     20
+
+A mano:
+  O = 0.04: ventilación, Γ = 1.00, t_max = 45 min, Θ_max = 900 °C, t*_max = 0.750; Θ_g(55 min) = 806 °C (paquete 806)
+    continuidad en t_max: 899.9 → 899.9 °C
+  O = 0.10: combustible, Γ = 6.25, t_max = 20 min, Θ_max = 818 °C, t*_max = 1.875; Θ_g(30 min) = 525 °C (paquete 525)
+    continuidad en t_max: 818.2 → 818.0 °C
+
+Perfil sin proteger, Am/V = 200 m⁻¹ (θ_a máxima y cuándo):
+  ISO 834:            θ_a(120 min) = 1048 °C
+  paramétrica O = 0.04: θ_a,max = 895 °C a los 46 min; a 120 min 263 °C
+  paramétrica O = 0.10: θ_a,max = 784 °C a los 21 min; a 120 min 20 °C
 ```
 
 </details>
@@ -782,11 +807,11 @@ POST /api/thermal/iso834 → 200 {"time_minutes": 30.0, "gas_temperature_C": 841
 
 ## Limitazioni
 
-- `iso834.FireEvaluator` (e l'endpoint `/api/thermal/iso834`) è uno stimatore semplificato della temperatura dell'acciaio, non il metodo del §4.2.5; si mantiene per compatibilità. Per i giudizi usa `en_steel_temperature` o `/api/fire/check-profile`.
-- La temperatura di riferimento T_Ed, gli incendi parametrici dell'Allegato A della EN 1991-1-2 e i profili di temperatura dell'Allegato A della EN 1992-1-2 non sono implementati.
+- `iso834.FireEvaluator` (e l'endpoint `/api/thermal/iso834`) è per impostazione predefinita uno stimatore semplificato della temperatura dell'acciaio, non il metodo del §4.2.5; con `use_en1993_exact_c_a=True` integra il §4.2.5, ma il caso protetto usa una lastra fissa (15 mm, λ_p = 0,12, c_p = 1100, ρ_p = 400). Per i verdetti usa `en_steel_temperature` o `/api/fire/check-profile`.
+- La temperatura di riferimento T_Ed e i profili di temperatura dell'Allegato A della EN 1992-1-2 non sono implementati. La curva parametrica dell'Allegato A della EN 1991-1-2 (aa269db) dà Θ_g, ma non tramite l'API; nella 1.2.1 è stato corretto il raffreddamento negli incendi controllati dal combustibile (Θ_max con Γ_lim e t*_max dell'Eq. A.12: prima saltava da 818 a 1052 °C in t_max).
 - `protection_catalog` contiene sei prodotti generici senza tabelle di prova caricate; gli intumescenti si verificano solo dopo aver caricato righe del rapporto del produttore.
 - `check_fire_resistance_from_profile` usa k_sh = 0,90, A_p/V = Am/V e lo spessore medio della gamma del prodotto; affina con `ProtectedSteel` direttamente.
-- `thermal_fea` usa k = 45 W/mK costante e c_a valutato alla temperatura media della sezione; la protezione è modellata come una resistenza termica nel flusso, non come uno strato meshato. `fem_thermal_1d` usa h = 25 W/m²K combinato sulla faccia esposta e proprietà costanti.
+- `thermal_fea` usa per impostazione predefinita k = 45 W/mK costante (con `variable_k=True`, λ_a(θ) del §3.4.1.3 valutata alla temperatura media della sezione, non cella per cella) e c_a alla temperatura media; la protezione è modellata come una resistenza termica nel flusso, non come strato meshato. `fem_thermal_1d` usa h = 25 W/m²K sulla faccia esposta (più radiazione linearizzata con ε = 0,7 se `include_radiation=True`) e proprietà costanti salvo con `variable_steel_properties=True`, che riconosce l'acciaio dal nome dello strato («steel» o «acero»).
 - `concrete_fire` usa un profilo di temperatura semiempirico (diffusività dipendente da T e plateau a 100 °C); le tabelle 5.2a/5.5/5.8 sono riassunte.
 - `fire_load_density`: valori caratteristici e fattori δ predefiniti; k_c = 0,07 min·m²/MJ è una semplificazione della EN 1991-1-2 Allegato F.
 - Il codice AU viene instradato sulla tabella EN senza gli adattamenti della AS 4100.
