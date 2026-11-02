@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 — 2026-11-02
+
+- `en_steel_temperature.parametric_fire_gas` (curva paramétrica de EN 1991-1-2 Anexo A, añadida en aa269db): en los fuegos controlados por el combustible (t_max = t_lim) la fase de enfriamiento tomaba Θ_max y t*_max con Γ·t_lim. Según A.10–A.12, Θ_max es la temperatura al final del calentamiento con Γ_lim, y t*_max = (0,2·10⁻³·q_t,d/O)·Γ. Con O = 0,10 y q_t,d = 150 MJ/m², Θ_g saltaba de 818 a 1052 °C en t = 20 min; ahora es continua (`tests/test_parametric_fire_annex_a.py`, con el enfriamiento rehecho a mano).
+
 ## 1.2.0 — 2026-10-31
 
 Correcciones encontradas al ejecutar los casos de uso del README.

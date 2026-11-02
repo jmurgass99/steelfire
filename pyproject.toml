@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "steelfire"
-version = "1.2.0"
+version = "1.2.1"
 description = "Structural steel in fire to EN 1993-1-2: nominal fire curves (ISO 834, hydrocarbon, external, ASTM E119, RWS), unprotected and protected steel temperature, critical temperature, reduction factors (EN 1993-1-2 and AISC 360 Appendix 4), fire-rating check with passive protection, 2D and 1D thermal solvers, EN 1992-1-2 concrete isotherm and zone methods, fire load density."
 readme = "README.md"
 requires-python = ">=3.10"

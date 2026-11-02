@@ -72,18 +72,11 @@ def parametric_fire_gas(
     t_lim_hr = t_lim_min / 60.0
 
     Gamma = ((O / 0.04) / (b / 1160.0)) ** 2
-    t_max_hr = max(0.2e-3 * q_td / O, t_lim_hr)
+    t_max_vent_hr = 0.2e-3 * q_td / O                     # Ec. (A.7), rama de ventilación
+    t_max_hr = max(t_max_vent_hr, t_lim_hr)
+    fuel_controlled = t_max_vent_hr < t_lim_hr
 
-    if t_hr <= t_max_hr:
-        if t_max_hr == t_lim_hr and (0.2e-3 * q_td / O) < t_lim_hr:
-            O_lim = 0.1e-3 * q_td / t_lim_hr
-            Gamma_lim = ((O_lim / 0.04) / (b / 1160.0)) ** 2
-            if O > 0.04 and q_td < 75.0 and b < 1160.0:
-                k = 1.0 + ((O - 0.04) / 0.04) * ((q_td - 75.0) / 75.0) * ((1160.0 - b) / 1160.0)
-                Gamma_lim *= k
-            t_star = Gamma_lim * t_hr
-        else:
-            t_star = Gamma * t_hr
+    def _heating(t_star: float) -> float:                 # Ec. (A.1)
         return 20.0 + 1325.0 * (
             1.0
             - 0.324 * math.exp(-0.2 * t_star)
@@ -91,15 +84,23 @@ def parametric_fire_gas(
             - 0.472 * math.exp(-19.0 * t_star)
         )
 
-    # Fase de enfriamiento (EN 1991-1-2 §A.10 - A.12)
-    t_star_max = Gamma * t_max_hr
-    theta_max = 20.0 + 1325.0 * (
-        1.0
-        - 0.324 * math.exp(-0.2 * t_star_max)
-        - 0.204 * math.exp(-1.7 * t_star_max)
-        - 0.472 * math.exp(-19.0 * t_star_max)
-    )
-    x_factor = 1.0 if t_max_hr > t_lim_hr else (t_lim_hr * Gamma / max(t_star_max, 1e-9))
+    # Γ del calentamiento: Γ, o Γ_lim (Ec. A.8-A.9) si el fuego lo controla el combustible.
+    Gamma_heat = Gamma
+    if fuel_controlled:
+        O_lim = 0.1e-3 * q_td / t_lim_hr
+        Gamma_heat = ((O_lim / 0.04) / (b / 1160.0)) ** 2
+        if O > 0.04 and q_td < 75.0 and b < 1160.0:
+            k = 1.0 + ((O - 0.04) / 0.04) * ((q_td - 75.0) / 75.0) * ((1160.0 - b) / 1160.0)
+            Gamma_heat *= k
+
+    if t_hr <= t_max_hr:
+        return _heating(Gamma_heat * t_hr)
+
+    # Fase de enfriamiento (EN 1991-1-2 §A.10 - A.12): Θ_max es la temperatura al final del
+    # calentamiento (con Γ_lim si el fuego lo controla el combustible) y t*_max = (0,2·10⁻³·q_t,d/O)·Γ.
+    theta_max = _heating(Gamma_heat * t_max_hr)
+    t_star_max = Gamma * t_max_vent_hr
+    x_factor = (t_lim_hr * Gamma / max(t_star_max, 1e-9)) if fuel_controlled else 1.0
     t_star = Gamma * t_hr
     if t_star_max <= 0.5:
         theta = theta_max - 625.0 * (t_star - t_star_max * x_factor)
