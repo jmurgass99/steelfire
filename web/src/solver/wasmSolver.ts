@@ -1,4 +1,4 @@
-import type { FireThermalResult, ThermalSectionMapping } from "../data-model";
+import type { FireThermalResult, ThermalSectionMapping } from "../data-model.ts";
 
 const THERMAL_WASM_BASE64 =
   "AGFzbQEAAAABDgJgAXwBfGAEfHx8fAF8AwMCAAEHMAIXc3RlZWxDb25kdWN0aXZpdHlMaW5lYXIAABJzdGVlbFRlbXBJbmNyZW1lbnQAAQoyAhgARAAAAAAAAEtARLHh6ZWyDKE/IACioQsXACAAIAGiIAOiRAAAAAAAqr5AIAKiows=";

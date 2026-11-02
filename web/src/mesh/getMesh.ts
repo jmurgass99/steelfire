@@ -1,4 +1,4 @@
-import type { ThermalCell, ThermalSectionMapping } from "../data-model";
+import type { ThermalCell, ThermalSectionMapping } from "../data-model.ts";
 
 export function getThermalMesh(
   hMm: number,

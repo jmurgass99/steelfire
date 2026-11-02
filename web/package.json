@@ -7,7 +7,7 @@
     "dev": "vite --open",
     "build": "vite build",
     "preview": "vite preview --open",
-    "test": "vitest run",
+    "test": "node src/__tests__/steelfireWeb.test.ts",
     "build:wasm": "emcc ./src/solver/cpp/thermalKernel.cpp -o ./src/solver/cpp/built/thermalKernel.wasm -O3 -s STANDALONE_WASM --no-entry -s EXPORTED_FUNCTIONS=_steelConductivityLinear,_steelTempIncrement"
   },
   "dependencies": {
