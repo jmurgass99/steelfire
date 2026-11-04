@@ -1,5 +1,0 @@
-viga 300x500, 3 caras (superior cubierta)    15 min: máx   217 / media    98 °C | 30 min: máx   402 / media   218 °C  (39 instantes guardados)
-pilar 300x300, 4 caras                       15 min: máx   217 / media   136 °C | 30 min: máx   411 / media   306 °C  (39 instantes guardados)
-pilar 300x300, 4 caras, 20 mm protección     15 min: máx    62 / media    45 °C | 30 min: máx   112 / media    87 °C  (39 instantes guardados)
-
-n_x = 1 → ConfigurationError: n_x y n_y deben ser >= 2

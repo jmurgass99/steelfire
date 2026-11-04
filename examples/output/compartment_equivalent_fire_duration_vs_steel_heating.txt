@@ -1,6 +1,0 @@
-Viga Am/V = 200 m⁻¹, μ₀ = 0.6 → θ_cr = 554 °C
-
-local                         q_f,d   t_eq | θ sin prot.     θ placa 20    
-biblioteca sin rociadores      1440    101 |        1021  NO        737  NO
-oficina con rociadores          246     17 |         705  NO        190  OK
-vivienda                        624     44 |         892  NO        459  OK

@@ -1,8 +1,0 @@
-Catálogo tal cual: estado = NO_VERIFICADO, is_safe = None
-  nota: UL 60-INT-acrylic es un recubrimiento reactivo: EN 1993-1-2 4.2.5.2 (capa inerte) no le aplica y su lambda_p de pelicula seca no representa la espuma expandida. Se verifica por espesor certificado de ensayo (UL 263 / EN 13381-8) y el catalogo no tiene ninguna fila que cubra R60 hasta Am/V = 200 1/m. Sin dato certificado no hay veredicto: se requiere el informe de ensayo del fabricante.
-
-Producto UL 60-INT-acrylic con una fila de ensayo cargada (certified_test):
-  Am/V = 150 m⁻¹ → R60 con 1.20 mm (hasta 220 m⁻¹); fuente: fila ILUSTRATIVA de este ejemplo; sustituir por el DoP / informe UL del fabricante
-  Am/V = 200 m⁻¹ → R60 con 1.20 mm (hasta 220 m⁻¹); fuente: fila ILUSTRATIVA de este ejemplo; sustituir por el DoP / informe UL del fabricante
-  Am/V = 250 m⁻¹ → sin fila aplicable (no se extrapola fuera del Am/V ensayado)
-  requisito R90 con la misma fila → None
