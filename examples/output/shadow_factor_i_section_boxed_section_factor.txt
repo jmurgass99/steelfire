@@ -1,6 +1,0 @@
-perfil     Am/V  [Am/V]_b   k_sh |  θ 30 min k_sh=1  θ 30 min con k_sh
-IPE 300     200       140  0.630 |              828                798
-IPE 500     150       110  0.660 |              815                766
-HEB 300     115        85  0.665 |              787                738
-
-k_sh solo depende del cociente [Am/V]_b/[Am/V]; el chequeo por perfil del paquete usa k_sh = 0,90 por defecto.
